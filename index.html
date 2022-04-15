@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Title</title>
+        <script src="./scripts/elements/index.js" type="module" defer></script>
+        <style>
+            html, body {
+                height: 100vh;
+                margin: 0;
+            }
+
+            body {
+                display: flex;
+                flex-direction: column;
+            }
+
+            details {
+                padding-left: 10px
+            }
+
+            #explorer {
+                align-items: stretch;
+                flex-grow: 1;
+                display: flex;
+            }
+
+            #addressBar {
+                display: flex;
+            }
+
+            #addressBar form {
+                flex-grow: 1;
+                display: flex;
+            }
+
+            #addressBar form input {
+                flex-grow: 1;
+            }
+
+            #tree {
+                border: 2px solid red;
+            }
+
+            #container {
+                flex-grow: 1;
+                flex-basis: min-content;
+                border: 2px solid red;
+            }
+
+            #container div:focus {
+                outline: 2px solid green;
+            }
+
+            #container div {
+                display: inline-block;
+                padding: 10px;
+                border: 1px solid;
+            }
+
+            #preview {
+                flex-grow: 1;
+                flex-basis: min-content;
+                border: 2px solid red
+            }
+
+            iframe {
+                width: 0
+            }
+
+            ul[is=solid-crumb-trail] li {
+                list-style-type: none;
+                display: inline;
+            }
+
+            ul[is=solid-crumb-trail] li:after {
+                margin: 0 10px;
+                content: "/"
+            }
+        </style>
+    </head>
+    <body is="solid-app">
+        <div>
+            <dialog id="confirmDialog" is="solid-dialog">
+                <form method="dialog">
+                    <fieldset>
+                        <legend>sure?</legend>
+                        <button><b>yes</b></button>
+                        <button data-type="cancel" type="button">no</button>
+                    </fieldset>
+                </form>
+            </dialog>
+            <dialog id="uploadDialog" is="solid-dialog">
+                <form method="dialog">
+                    <fieldset>
+                        <legend>upload</legend>
+                        <div>
+                            <label>
+                                <span>name</span>
+                                <input id="uploadFileName" required>
+                            </label>
+                            <br>
+                            <output></output>
+                        </div>
+                        <div>
+                            <label>
+                                <span>RDF</span>
+                                <input id="uploadSourceType" type="checkbox">
+                            </label>
+                        </div>
+                        <div>
+                            <label>
+                                <span>content type</span>
+                                <input id="uploadContentType" required pattern="\w+/[\w+-]+" list="uploadContentTypeList">
+                            </label>
+                        </div>
+                        <div>
+                            <label>
+                                <span>file</span>
+                                <input id="uploadFile" type="file">
+                            </label>
+                        </div>
+                        <button><b>OK</b></button>
+                        <button data-type="cancel" type="button">Cancel</button>
+                    </fieldset>
+                </form>
+                <datalist id="uploadContentTypeList">
+                    <option value="text/turtle">Turtle</option>
+                    <option value="application/json-ld">JSON-LD</option>
+                    <option value="application/rdf+xml">RDF/XML</option>
+                    <option value="text/plain">Plain text</option>
+                    <option value="application/octet-stream">Binary</option>
+                </datalist>
+            </dialog>
+            <dialog id="notFoundDialog" is="solid-dialog">
+                <form method="dialog">
+                    <fieldset>
+                        <legend>not found</legend>
+                        <button><b>OK</b></button>
+                    </fieldset>
+                </form>
+            </dialog>
+            <dialog id="newContainerDialog" is="solid-dialog">
+                <form method="dialog">
+                    <fieldset>
+                        <legend>New container</legend>
+                        <div>
+                            <label>
+                                <span>Container name</span>
+                                <input required>
+                            </label>
+                            <br>
+                            <output></output>
+                        </div>
+                        <button><b>OK</b></button>
+                        <button data-type="cancel" type="button">Cancel</button>
+                    </fieldset>
+                </form>
+            </dialog>
+            <dialog id="containerItemContextDialog" is="solid-dialog">
+                <form method="dialog">
+                    <button value="download">download</button>
+                    <button value="delete">delete</button>
+                    <button value="deleteRecursive">delete recursive</button>
+                    <button data-type="cancel" type="button">cancel</button>
+                </form>
+            </dialog>
+            <dialog id="containerContextDialog" is="solid-dialog">
+                <form method="dialog">
+                    <button value="newContainer">new container</button>
+                    <button value="refresh">refresh</button>
+                    <button value="upload">upload</button>
+                    <button value="uploadVerbose">upload...</button>
+                    <button data-type="cancel" type="button">cancel</button>
+                </form>
+            </dialog>
+
+            <dialog id="authenticationDialog" is="solid-dialog">
+                <form method="dialog">
+                    <fieldset>
+                        <legend>authentication</legend>
+                        <p>click here to initiate authentication flow in a new window</p>
+                        <button>authenticate</button>
+                    </fieldset>
+                </form>
+            </dialog>
+            <dialog id="idpUriDialog" is="solid-dialog">
+                <form method="dialog">
+                    <fieldset>
+                        <legend>Provide IDP URI</legend>
+                        <div>
+                            <label>
+                                <span>IDP URI</span>
+                                <input required type="url" pattern="https?://.*" placeholder="https://openid.example.com" list="identityProviderList">
+                            </label>
+                            <button id="getIdpFromWebIdButton" type="button">Get from WebID</button>
+                            <br>
+                            <output></output>
+                        </div>
+                        <button><b>OK</b></button>
+                        <button data-type="cancel" type="button">Cancel</button>
+                    </fieldset>
+                </form>
+                <datalist id="identityProviderList">
+                    <option value="https://login.inrupt.com"></option>
+                    <option value="https://openid.dev-next.inrupt.com"></option>
+                    <option value="https://broker.pod.inrupt.com"></option>
+                </datalist>
+            </dialog>
+            <dialog id="storageSelectDialog" is="solid-select-dialog">
+                <form method="dialog">
+                    <fieldset>
+                        <legend>select storage uri</legend>
+                        <div>
+                            <label>storage uris <select></select></label>
+                        </div>
+                        <button>ok</button>
+                        <button data-type="cancel" type="button">cancel</button>
+                    </fieldset>
+                </form>
+            </dialog>
+            <dialog id="idpSelectDialog" is="solid-select-dialog">
+                <form method="dialog">
+                    <fieldset>
+                        <legend>Choose IDP</legend>
+                        <div>
+                            <label>IDPs <select></select></label>
+                        </div>
+                        <button><b>OK</b></button>
+                        <button data-type="cancel" type="button">Cancel</button>
+                    </fieldset>
+                </form>
+            </dialog>
+            <dialog id="webIdUriDialog" is="solid-dialog">
+                <form method="dialog">
+                    <fieldset>
+                        <legend>Provide WebID URI</legend>
+                        <div>
+                            <label>
+                                <span>WebID URI</span>
+                                <input required type="url" pattern="https?://.*" placeholder="https://id.example.com/username" list="webIdPrefixList">
+                            </label>
+                            <br>
+                            <output></output>
+                        </div>
+                        <button><b>OK</b></button>
+                        <button data-type="cancel" type="button">Cancel</button>
+                    </fieldset>
+                </form>
+                <datalist id="webIdPrefixList">
+                    <option value="https://id.inrupt.com/"></option>
+                    <option value="https://id.dev-next.inrupt.com/"></option>
+                    <option value="https://pod.inrupt.com/"></option>
+                </datalist>
+            </dialog>
+        </div>
+        <div>
+            <button id="getSolidResourceUriFromWebIdButton" type="button">Get from WebID</button>
+            <button id="clearCredentialsButton" type="button">Clear credentials</button>
+        </div>
+
+        <div id="addressBar">
+            <form is="solid-address-bar">
+                <label for="resourceUriInput">resource uri</label>
+                <input id="resourceUriInput" required type="url" pattern="https?://.*">
+                <button value="go">go</button>
+                <button value="up">↑</button>
+            </form>
+        </div>
+        <ul is="solid-crumb-trail"></ul>
+        <div id="explorer">
+            <details id="tree" is="solid-tree" tabindex=""></details>
+            <div id="container" is="solid-container-view" tabindex="0"></div>
+            <iframe id="preview" is="solid-resource-viewer"></iframe>
+        </div>
+    </body>
+</html>
