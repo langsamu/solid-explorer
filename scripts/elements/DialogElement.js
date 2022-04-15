@@ -3,6 +3,7 @@ export class DialogElement extends HTMLDialogElement {
         this.#form.addEventListener("submit", this.#onSubmit.bind(this))
         this.#input?.addEventListener("input", this.#onInput.bind(this))
         this.#cancelButton?.addEventListener("click", this.#onClickCancel.bind(this))
+        this.addEventListener("click", this.#onClick.bind(this))
     }
 
     /**
@@ -59,5 +60,15 @@ export class DialogElement extends HTMLDialogElement {
 
     #onClickCancel() {
         this.close()
+    }
+
+    #onClick(e) {
+        if (e.target !== this) {
+            return
+        }
+
+        if (e.offsetX < 0 || e.offsetY < 0 || e.offsetX > this.offsetWidth || e.offsetY > this.offsetHeight) {
+            this.close()
+        }
     }
 }

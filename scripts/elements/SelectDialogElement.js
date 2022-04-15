@@ -2,6 +2,7 @@ export class SelectDialogElement extends HTMLDialogElement {
     async connectedCallback() {
         this.#form.addEventListener("submit", this.#onSubmit.bind(this))
         this.#cancelButton?.addEventListener("click", this.#onClickCancel.bind(this))
+        this.addEventListener("click", this.#onClick.bind(this))
     }
 
     /**
@@ -50,5 +51,15 @@ export class SelectDialogElement extends HTMLDialogElement {
 
     #onClickCancel() {
         this.close()
+    }
+
+    #onClick(e) {
+        if (e.target !== this) {
+            return
+        }
+
+        if (e.offsetX < 0 || e.offsetY < 0 || e.offsetX > this.offsetWidth || e.offsetY > this.offsetHeight) {
+            this.close()
+        }
     }
 }
