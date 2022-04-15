@@ -91,6 +91,10 @@ export class AppElement extends HTMLBodyElement {
         }
 
         const credentials = await this.#getOidcCredentials()
+        if (!credentials) {
+            return
+        }
+
         const rootContainerUri = await SolidClient.getRootContainer(storage, credentials.id_token)
         const resourceUri = new ResourceUri(profile.storages, undefined, rootContainerUri)
         this.#addressBar.resourceUri = resourceUri
@@ -190,6 +194,10 @@ export class AppElement extends HTMLBodyElement {
     async #onHashChange(e) {
         const resourceUriString = decodeURIComponent(new URL(e.newURL).hash.substring(1))
         const credentials = await this.#getOidcCredentials()
+        if (!credentials) {
+            return
+        }
+
         const rootContainerUri = await SolidClient.getRootContainer(resourceUriString, credentials.id_token)
         const resourceUri = new ResourceUri(resourceUriString, undefined, rootContainerUri)
 
@@ -234,6 +242,10 @@ export class AppElement extends HTMLBodyElement {
 
     async #onDeleteResource(e) {
         const credentials = await this.#getOidcCredentials()
+        if (!credentials) {
+            return
+        }
+
         const resource = await SolidClient.deleteResource(e.detail.resourceUri, credentials.id_token)
         e.detail.resolve(resource)
     }
@@ -297,6 +309,10 @@ export class AppElement extends HTMLBodyElement {
                 if (newContainerName) {
                     const clean = encodeURIComponent(newContainerName)
                     const credentials = await this.#getOidcCredentials()
+                    if (!credentials) {
+                        return
+                    }
+
                     await SolidClient.postResource(e.detail.resourceUri, Ldp.BasicContainer, Mime.Turtle, clean, credentials.id_token)
                     this.#container.refresh()
                 }
@@ -320,18 +336,30 @@ export class AppElement extends HTMLBodyElement {
 
     async #onNeedChildren(e) {
         const credentials = await this.#getOidcCredentials()
+        if (!credentials) {
+            return
+        }
+
         const children = await SolidClient.getChildren(e.detail.resourceUri, credentials.id_token)
         e.detail.resolve(children)
     }
 
     async #onNeedResource(e) {
         const credentials = await this.#getOidcCredentials()
+        if (!credentials) {
+            return
+        }
+
         const resource = await SolidClient.getResource(e.detail.resourceUri, credentials.id_token, e.detail.signal)
         e.detail.resolve(resource)
     }
 
     async #onNeedRoot(e) {
         const credentials = await this.#getOidcCredentials()
+        if (!credentials) {
+            return
+        }
+
         const resource = await SolidClient.getRootContainer(e.detail.resourceUri, credentials.id_token, e.detail.signal)
         e.detail.resolve(resource)
     }
@@ -371,6 +399,10 @@ export class AppElement extends HTMLBodyElement {
 
     async #upload(resourceUri, sourceType, contentType, file) {
         const credentials = await this.#getOidcCredentials()
+        if (!credentials) {
+            return
+        }
+
 
         try {
             await SolidClient.putResource(resourceUri, sourceType, contentType, file, credentials.id_token)
@@ -389,6 +421,10 @@ export class AppElement extends HTMLBodyElement {
 
     async #deleteWithoutConfirmation(resourceUri) {
         const credentials = await this.#getOidcCredentials()
+        if (!credentials) {
+            return
+        }
+
         await SolidClient.deleteResource(resourceUri, credentials.id_token)
     }
 
@@ -398,6 +434,10 @@ export class AppElement extends HTMLBodyElement {
         }
 
         const credentials = await this.#getOidcCredentials()
+        if (!credentials) {
+            return
+        }
+
         const resourcesToDelete = await SolidClient.getDescendantsDepthFirst(resourceUri, credentials.id_token)
 
         for (const resource of resourcesToDelete) {
@@ -408,6 +448,10 @@ export class AppElement extends HTMLBodyElement {
 
     async #open(resourceUri) {
         const credentials = await this.#getOidcCredentials()
+        if (!credentials) {
+            return
+        }
+
         const resourceResponse = await SolidClient.getResource(resourceUri, credentials.id_token)
 
         if (!resourceResponse.ok) {
@@ -424,6 +468,10 @@ export class AppElement extends HTMLBodyElement {
 
     async #download(resourceUri) {
         const credentials = await this.#getOidcCredentials()
+        if (!credentials) {
+            return
+        }
+
         const resourceResponse = await SolidClient.getResource(resourceUri, credentials.id_token)
 
         if (!resourceResponse.ok) {
