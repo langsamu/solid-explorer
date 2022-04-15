@@ -73,8 +73,6 @@ export class AppElement extends HTMLBodyElement {
 
 
     async #getSolidResourceUriFromWebId() {
-        const resourceUriElement = document.getElementById("resourceUriInput")
-
         const profile = await this.#getWebIdProfile()
         if (!profile) {
             return
@@ -98,7 +96,7 @@ export class AppElement extends HTMLBodyElement {
         const rootContainerUri = await SolidClient.getRootContainer(storage, credentials.id_token)
         const resourceUri = new ResourceUri(profile.storages, undefined, rootContainerUri)
         this.#addressBar.resourceUri = resourceUri
-        resourceUriElement.focus()
+        this.#addressBar.focus()
     }
 
     async #getWebIdProfile() {

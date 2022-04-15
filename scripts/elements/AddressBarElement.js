@@ -9,6 +9,7 @@ export class AddressBarElement extends HTMLFormElement {
 
         this.addEventListener("submit", this.#onSubmit.bind(this))
         this.addEventListener("resourceUriSet", this.#onResourceUriSet.bind(this))
+        this.addEventListener("focus", this.#onFocus.bind(this))
     }
 
     get #input() {
@@ -58,5 +59,9 @@ export class AddressBarElement extends HTMLFormElement {
     async #onResourceUriSet() {
         this.#input.value = this.#resourceUri.toString()
         this.#upButton.disabled = this.#resourceUri.isRoot
+    }
+
+    async #onFocus() {
+        this.#input.focus()
     }
 }
