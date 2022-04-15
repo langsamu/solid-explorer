@@ -79,13 +79,21 @@ export class AppElement extends HTMLBodyElement {
             return
         }
 
+        let storage
         if (profile.storages.length === 1) {
-            resourceUriElement.value = profile.storages[0]
-            resourceUriElement.focus()
+            storage = profile.storages
         } else {
-            resourceUriElement.value = await storageSelectDialog.getModalValue(profile.storages)
-            resourceUriElement.focus()
+            storage = await storageSelectDialog.getModalValue(profile.storages)
+            if (!storage) {
+                return
+            }
         }
+
+        const credentials = await this.#getOidcCredentials()
+        const rootContainerUri = await SolidClient.getRootContainer(storage, credentials.id_token)
+        const resourceUri = new ResourceUri(profile.storages, undefined, rootContainerUri)
+        this.#addressBar.resourceUri = resourceUri
+        resourceUriElement.focus()
     }
 
     async #getWebIdProfile() {
@@ -167,7 +175,7 @@ export class AppElement extends HTMLBodyElement {
     async #getIdpUri() {
         if (!localStorage.getItem("idpUri")) {
             const value = await this.#idpUriDialog.getModalValue()
-            if (!value){
+            if (!value) {
                 return
             }
 
@@ -178,7 +186,7 @@ export class AppElement extends HTMLBodyElement {
     }
 
 
-    async #onHashChange(e){
+    async #onHashChange(e) {
         const resourceUriString = decodeURIComponent(new URL(e.newURL).hash.substring(1))
         const credentials = await this.#getOidcCredentials()
         const rootContainerUri = await SolidClient.getRootContainer(resourceUriString, credentials.id_token)
