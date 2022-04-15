@@ -18,8 +18,9 @@ export class AppElement extends HTMLBodyElement {
             this.#crumbTrail.addEventListener("resourceClick", this.#onCrumbTrailResourceClick.bind(this))
             this.#container.addEventListener("resourceClick", this.#onContainerResourceClick.bind(this))
             this.#container.addEventListener("resourceDoubleClick", this.#onContainerItemDoubleClick.bind(this))
-            this.#container.addEventListener("containerItemContextMenu", this.#onContainerItemContextMenu.bind(this))
-            this.#container.addEventListener("containerContextMenu", this.#onContainerContextMenu.bind(this))
+
+            this.#container.addEventListener("resourceContextMenu", this.#onResourceContextMenu.bind(this))
+            this.#tree.addEventListener("resourceContextMenu", this.#onResourceContextMenu.bind(this))
 
             this.addEventListener("needChildren", this.#onNeedChildren.bind(this))
             this.addEventListener("needResource", this.#onNeedResource.bind(this))
@@ -237,12 +238,29 @@ export class AppElement extends HTMLBodyElement {
         e.detail.resolve(resource)
     }
 
-    async #onContainerContextMenu(e) {
-        const command = await document.getElementById("containerContextDialog").getModalValue()
+    async #onResourceContextMenu(e) {
+        let command
+        if (e.detail.resourceUri.isContainer) {
+            command = await document.getElementById("containerContextDialog").getModalValue()
+        } else {
+            command = await document.getElementById("resourceContextDialog").getModalValue()
+        }
 
         switch (command) {
-            case "refresh":
-                e.target.dispatchEvent(new CustomEvent("gotResourceUri"))
+            case "open":
+                location.hash = encodeURIComponent(e.detail.resourceUri)
+
+                break
+
+            case "openNew":
+                if (e.detail.resourceUri.isContainer) {
+                    const newWindowUrl = new URL(location)
+                    newWindowUrl.hash = encodeURIComponent(e.detail.resourceUri)
+                    open(newWindowUrl)
+                } else {
+                    await this.#open(e.detail.resourceUri)
+                }
+
                 break
 
             case "upload":
@@ -284,13 +302,7 @@ export class AppElement extends HTMLBodyElement {
                 }
 
                 break
-        }
-    }
 
-    async #onContainerItemContextMenu(e) {
-        const command = await document.getElementById("containerItemContextDialog").getModalValue()
-
-        switch (command) {
             case "download":
                 await this.#download(e.detail.resourceUri)
                 break

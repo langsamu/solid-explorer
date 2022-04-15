@@ -10,6 +10,7 @@ export class TreeElement extends HTMLDetailsElement {
         this.addEventListener("toggle", this.#onToggle.bind(this))
         this.#summarySpan.addEventListener("click", this.#onSummarySpanClick.bind(this))
         this.#summarySpan.addEventListener("dblclick", this.#onSummarySpanDoubleClick.bind(this))
+        this.#summarySpan.addEventListener("contextmenu", this.#onContextMenu.bind(this))
     }
 
     get #summarySpan() {
@@ -78,5 +79,15 @@ export class TreeElement extends HTMLDetailsElement {
     async #onSummarySpanDoubleClick(e) {
         e.stopPropagation()
         this.open = !this.open
+    }
+
+    async #onContextMenu(e) {
+        e.preventDefault()
+        e.stopPropagation()
+
+        this.dispatchEvent(new CustomEvent("resourceContextMenu", {
+            bubbles: true,
+            detail: {resourceUri: this.resourceUri}
+        }))
     }
 }

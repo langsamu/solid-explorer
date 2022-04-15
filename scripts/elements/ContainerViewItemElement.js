@@ -60,7 +60,7 @@ export class ContainerViewItemElement extends HTMLDivElement {
         e.preventDefault()
         e.stopPropagation()
 
-        this.dispatchEvent(new CustomEvent("containerItemContextMenu", {
+        this.dispatchEvent(new CustomEvent("resourceContextMenu", {
             bubbles: true,
             detail: {resourceUri: this.resourceUri}
         }))

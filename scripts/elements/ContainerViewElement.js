@@ -46,7 +46,7 @@ export class ContainerViewElement extends HTMLDivElement {
     async #onContextMenu(e) {
         e.preventDefault()
 
-        this.dispatchEvent(new CustomEvent("containerContextMenu", {
+        this.dispatchEvent(new CustomEvent("resourceContextMenu", {
             bubbles: true,
             detail: {resourceUri: this.resourceUri}
         }))
