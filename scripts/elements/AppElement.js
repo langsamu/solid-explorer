@@ -2,10 +2,16 @@ import {WebIdClient} from "../WebIdClient.js"
 import {SolidClient} from "../SolidClient.js"
 import {Ldp, Mime} from "../Vocabulary.js"
 import {ResourceUri} from "../ResourceUri.js"
+import {OidcCredentialManager} from "../OidcCredentialManager.js"
 
 export class AppElement extends HTMLBodyElement {
-    #oidcCredentials
-    #gettingOidcCredentials
+    #oidc
+
+    constructor() {
+        super()
+
+        this.#oidc = new OidcCredentialManager
+    }
 
     connectedCallback() {
         addEventListener("load", async () => {
@@ -22,6 +28,8 @@ export class AppElement extends HTMLBodyElement {
             this.#container.addEventListener("resourceContextMenu", this.#onResourceContextMenu.bind(this))
             this.#tree.addEventListener("resourceContextMenu", this.#onResourceContextMenu.bind(this))
 
+            this.#oidc.addEventListener("needIdp", this.#onNeedIdp.bind(this))
+            this.#oidc.addEventListener("needInteraction", this.#onNeedInteraction.bind(this))
             this.addEventListener("needChildren", this.#onNeedChildren.bind(this))
             this.addEventListener("needResource", this.#onNeedResource.bind(this))
             this.addEventListener("needRoot", this.#onNeedRoot.bind(this))
@@ -71,6 +79,10 @@ export class AppElement extends HTMLBodyElement {
         return document.getElementById("confirmDialog")
     }
 
+    get #authenticationDialog() {
+        return document.getElementById("authenticationDialog")
+    }
+
 
     async #getSolidResourceUriFromWebId() {
         const profile = await this.#getWebIdProfile()
@@ -88,7 +100,7 @@ export class AppElement extends HTMLBodyElement {
             }
         }
 
-        const credentials = await this.#getOidcCredentials()
+        const credentials = await this.#oidc.getCredentials()
         if (!credentials) {
             return
         }
@@ -114,52 +126,6 @@ export class AppElement extends HTMLBodyElement {
         }
 
         return localStorage.getItem("webIdUri")
-    }
-
-    async #getOidcCredentials() {
-        if (this.#gettingOidcCredentials instanceof Promise) {
-            console.log("waiting")
-            await this.#gettingOidcCredentials
-        }
-
-        // See if we have cached credentials
-        if (this.#oidcCredentials) {
-            // Assuming ID token and access token have same expiry
-            const expiry = JSON.parse(atob(this.#oidcCredentials.id_token.split(".")[1])).exp * 1000
-
-            // Make sure there's at least ten seconds to go until token expires
-            if (new Date(expiry) - Date.now() > 10000) {
-                return this.#oidcCredentials
-            }
-        }
-
-        let releaseLock
-        this.#gettingOidcCredentials = new Promise(resolve => releaseLock = () => resolve(this.#gettingOidcCredentials = null))
-
-        const idp = await this.#getIdpUri()
-        if (!idp) {
-            return releaseLock()
-        }
-
-        // These keys will be used
-        // (1) by an authN child window to wrap the symmetric key it uses to encrypt the OIDC response and
-        // (2) by this window to unwrap that symmetric key so we can decrypt the OIDC response.
-        const keyPair = await crypto.subtle.generateKey(
-            {
-                name: "RSA-OAEP",
-                modulusLength: 4096,
-                publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
-                hash: "SHA-256",
-            },
-            true,
-            ["wrapKey", "unwrapKey"]
-        )
-
-        const key = btoa(JSON.stringify(await crypto.subtle.exportKey("jwk", keyPair.publicKey)))
-        const authenticationUrl = `./dynamic_authentication.html?${new URLSearchParams({idp, key})}`;
-        const credentials = await AppElement.#getOidcCredentialsFromAuthNWindow(authenticationUrl, keyPair.privateKey)
-
-        return releaseLock() || (this.#oidcCredentials = credentials)
     }
 
     async #getIdpFromWebId() {
@@ -188,10 +154,21 @@ export class AppElement extends HTMLBodyElement {
         return localStorage.getItem("idpUri")
     }
 
+    async #onNeedIdp(e) {
+        e.detail.resolve(await this.#getIdpUri())
+    }
+
+    async #onNeedInteraction(e) {
+        if (!await this.#authenticationDialog.getModalValue()) {
+            return
+        }
+
+        e.detail.resolve()
+    }
 
     async #onHashChange(e) {
         const resourceUriString = decodeURIComponent(new URL(e.newURL).hash.substring(1))
-        const credentials = await this.#getOidcCredentials()
+        const credentials = await this.#oidc.getCredentials()
         if (!credentials) {
             return
         }
@@ -207,7 +184,7 @@ export class AppElement extends HTMLBodyElement {
     }
 
     async #onClearCredentialsClick() {
-        this.#oidcCredentials = null
+        this.#oidc.clearCredentials()
     }
 
     async #onTreeResourceClick(e) {
@@ -239,7 +216,7 @@ export class AppElement extends HTMLBodyElement {
     }
 
     async #onDeleteResource(e) {
-        const credentials = await this.#getOidcCredentials()
+        const credentials = await this.#oidc.getCredentials()
         if (!credentials) {
             return
         }
@@ -306,7 +283,7 @@ export class AppElement extends HTMLBodyElement {
 
                 if (newContainerName) {
                     const clean = encodeURIComponent(newContainerName)
-                    const credentials = await this.#getOidcCredentials()
+                    const credentials = await this.#oidc.getCredentials()
                     if (!credentials) {
                         return
                     }
@@ -333,7 +310,7 @@ export class AppElement extends HTMLBodyElement {
 
 
     async #onNeedChildren(e) {
-        const credentials = await this.#getOidcCredentials()
+        const credentials = await this.#oidc.getCredentials()
         if (!credentials) {
             return
         }
@@ -343,7 +320,7 @@ export class AppElement extends HTMLBodyElement {
     }
 
     async #onNeedResource(e) {
-        const credentials = await this.#getOidcCredentials()
+        const credentials = await this.#oidc.getCredentials()
         if (!credentials) {
             return
         }
@@ -353,7 +330,7 @@ export class AppElement extends HTMLBodyElement {
     }
 
     async #onNeedRoot(e) {
-        const credentials = await this.#getOidcCredentials()
+        const credentials = await this.#oidc.getCredentials()
         if (!credentials) {
             return
         }
@@ -396,7 +373,7 @@ export class AppElement extends HTMLBodyElement {
     }
 
     async #upload(resourceUri, sourceType, contentType, file) {
-        const credentials = await this.#getOidcCredentials()
+        const credentials = await this.#oidc.getCredentials()
         if (!credentials) {
             return
         }
@@ -418,7 +395,7 @@ export class AppElement extends HTMLBodyElement {
     }
 
     async #deleteWithoutConfirmation(resourceUri) {
-        const credentials = await this.#getOidcCredentials()
+        const credentials = await this.#oidc.getCredentials()
         if (!credentials) {
             return
         }
@@ -431,7 +408,7 @@ export class AppElement extends HTMLBodyElement {
             return
         }
 
-        const credentials = await this.#getOidcCredentials()
+        const credentials = await this.#oidc.getCredentials()
         if (!credentials) {
             return
         }
@@ -445,7 +422,7 @@ export class AppElement extends HTMLBodyElement {
     }
 
     async #open(resourceUri) {
-        const credentials = await this.#getOidcCredentials()
+        const credentials = await this.#oidc.getCredentials()
         if (!credentials) {
             return
         }
@@ -465,7 +442,7 @@ export class AppElement extends HTMLBodyElement {
     }
 
     async #download(resourceUri) {
-        const credentials = await this.#getOidcCredentials()
+        const credentials = await this.#oidc.getCredentials()
         if (!credentials) {
             return
         }
@@ -483,43 +460,5 @@ export class AppElement extends HTMLBodyElement {
         a.href = blobUrl
         a.download = decodeURIComponent(resourceUri.name)
         a.click()
-    }
-
-    static async #getOidcCredentialsFromAuthNWindow(authenticationUrl, encryptionKey) {
-        // Open the authN window and wait for it to post us a message with the encrypted OIDC token response
-        return await new Promise(async resolve => {
-            addEventListener("message", async e => {
-                resolve(await this.#decryptOidcTokenResponse(e.data, encryptionKey));
-            }, {once: true})
-
-            const authenticationWindow = open(authenticationUrl)
-
-            // If popup was blocked then show alert dialog so next popup attempt is initiated by user click
-            if (!authenticationWindow) {
-                await document.getElementById("authenticationDialog").getModalValue()
-                open(authenticationUrl)
-            }
-        })
-    }
-
-    static async #decryptOidcTokenResponse(data, decryptionKey) {
-        // Get symmetric key from event data and unwrap using our own private key
-        const key = await crypto.subtle.unwrapKey(
-            "jwk",
-            data.key,
-            decryptionKey,
-            {name: "RSA-OAEP"},
-            data.algorithm,
-            false,
-            ["decrypt"])
-
-        // Decrypt response from event data using the unwrapped key it was encrypted with
-        const tokenResponseBytes = await crypto.subtle.decrypt(
-            data.algorithm,
-            key,
-            data.response)
-
-        // Convert back from bytes to OIDC response JSON
-        return JSON.parse(new TextDecoder().decode(tokenResponseBytes))
     }
 }
