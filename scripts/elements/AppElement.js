@@ -177,7 +177,7 @@ export class AppElement extends HTMLBodyElement {
         const resourceUri = new ResourceUri(resourceUriString, undefined, rootContainerUri)
 
         this.#tree.resourceUri = resourceUri.root
-        this.#container.resourceUri = resourceUri
+        this.#container.resourceUri = resourceUri.isContainer ? resourceUri : resourceUri.parent
         this.#addressBar.resourceUri = resourceUri
         this.#crumbTrail.resourceUri = resourceUri
         this.#preview.resourceUri = resourceUri
