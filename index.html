@@ -77,6 +77,10 @@
             #resourceUriInput {
                 font-family: monospace
             }
+
+            .context-menu form button {
+                display: list-item;
+            }
         </style>
     </head>
     <body is="solid-app">
@@ -157,7 +161,7 @@
                     </fieldset>
                 </form>
             </dialog>
-            <dialog id="resourceContextDialog" is="solid-dialog">
+            <dialog id="resourceContextDialog" class="context-menu" is="solid-dialog">
                 <form method="dialog">
                     <button value="open">open</button>
                     <button value="openNew">open in new window</button>
@@ -166,7 +170,7 @@
                     <button data-type="cancel" type="button">cancel</button>
                 </form>
             </dialog>
-            <dialog id="containerContextDialog" is="solid-dialog">
+            <dialog id="containerContextDialog" class="context-menu" is="solid-dialog">
                 <form method="dialog">
                     <button value="open">open</button>
                     <button value="openNew">open in new window</button>
@@ -179,7 +183,7 @@
                     <button data-type="cancel" type="button">cancel</button>
                 </form>
             </dialog>
-            <dialog id="fileMenuContextDialog" is="solid-dialog">
+            <dialog id="fileMenuContextDialog" class="context-menu" is="solid-dialog">
                 <form method="dialog">
                     <button value="openNew">open new window</button>
                     <button value="getSolidResourceUriFromWebIdButton">get resourceuri from webid</button>
