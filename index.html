@@ -5,28 +5,26 @@
         <title>Title</title>
         <script src="./scripts/elements/index.js" type="module" defer></script>
         <style>
-            html, body {
-                height: 100vh;
+            body {
                 margin: 0;
+                height: 100vh;
+                display: grid;
+                grid:
+                    "menu    menu     menu      menu     menu"    auto
+                    "address address  address   address  address" auto
+                    "crumb   crumb    crumb     crumb    crumb"   auto
+                    "tree    divider1 container divider2 viewer"  1fr
+                    / 1fr 20px 1fr 20px 1fr;
             }
 
-            body {
-                display: flex;
-                flex-direction: column;
+            gutter-column {
+                cursor: col-resize;
+                background-color: lightsalmon;
+                border-style: outset;
             }
 
             details {
                 padding-left: 10px
-            }
-
-            #explorer {
-                align-items: stretch;
-                flex-grow: 1;
-                display: flex;
-            }
-
-            #addressBar {
-                display: flex;
             }
 
             #addressBar form {
@@ -39,13 +37,11 @@
             }
 
             #tree {
-                border: 2px solid red;
             }
 
             #container {
                 flex-grow: 1;
                 flex-basis: min-content;
-                border: 2px solid red;
             }
 
             #container div:focus {
@@ -61,11 +57,6 @@
             #preview {
                 flex-grow: 1;
                 flex-basis: min-content;
-                border: 2px solid red
-            }
-
-            iframe {
-                width: 0
             }
 
             ul[is=solid-crumb-trail] li {
@@ -266,11 +257,10 @@
                 </datalist>
             </dialog>
         </div>
-        <div>
+        <div style="grid-area: menu">
             <button id="fileMenu">file</button>
         </div>
-
-        <div id="addressBar">
+        <div id="addressBar" style="grid-area: address">
             <form is="solid-address-bar" tabindex="0">
                 <label for="resourceUriInput">resource uri</label>
                 <input id="resourceUriInput" required type="url" pattern="https?://.*">
@@ -278,11 +268,33 @@
                 <button value="up">↑</button>
             </form>
         </div>
-        <ul is="solid-crumb-trail"></ul>
-        <div id="explorer">
+        <div style="grid-area: crumb">
+            <ul is="solid-crumb-trail"></ul>
+        </div>
+        <div style="grid-area: tree">
             <details id="tree" is="solid-tree" tabindex=""></details>
+        </div>
+        <gutter-column style="grid-area: divider1"></gutter-column>
+        <div style="grid-area: container">
             <div id="container" is="solid-container-view" tabindex="0"></div>
+        </div>
+        <gutter-column style="grid-area: divider2"></gutter-column>
+        <div style="grid-area: viewer;display: flex">
             <iframe id="preview" is="solid-resource-viewer"></iframe>
         </div>
+        <script type="module">
+            import "https://unpkg.com/split-grid/dist/split-grid.js"
+
+            Split({
+                columnGutters: [{
+                    track: 1,
+                    element: document.querySelector("gutter-column:nth-of-type(1)"),
+                }, {
+                    track: 3,
+                    element: document.querySelector("gutter-column:nth-of-type(2)"),
+                }],
+            })
+        </script>
+
     </body>
 </html>
