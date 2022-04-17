@@ -15,9 +15,9 @@ export class AppElement extends HTMLBodyElement {
 
     connectedCallback() {
         addEventListener("load", async () => {
-            document.getElementById("getSolidResourceUriFromWebIdButton").addEventListener("click", this.#getSolidResourceUriFromWebId.bind(this))
+            document.getElementById("fileMenu").addEventListener("click", this.#onFileMenu.bind(this))
+
             document.getElementById("getIdpFromWebIdButton").addEventListener("click", this.#getIdpFromWebId.bind(this))
-            document.getElementById("clearCredentialsButton").addEventListener("click", this.#onClearCredentialsClick.bind(this))
 
             this.#addressBar.addEventListener("resourceUriEntered", this.#onResourceUriEntered.bind(this))
             this.#tree.addEventListener("resourceClick", this.#onTreeResourceClick.bind(this))
@@ -183,10 +183,6 @@ export class AppElement extends HTMLBodyElement {
         this.#preview.resourceUri = resourceUri
     }
 
-    async #onClearCredentialsClick() {
-        this.#oidc.clearCredentials()
-    }
-
     async #onTreeResourceClick(e) {
         location.hash = encodeURIComponent(e.detail.resourceUri)
     }
@@ -304,6 +300,26 @@ export class AppElement extends HTMLBodyElement {
 
             case "deleteRecursive":
                 await this.#deleteRecursive(e.detail.resourceUri)
+                break
+        }
+    }
+
+    async #onFileMenu() {
+        let command = await document.getElementById("fileMenuContextDialog").getModalValue()
+
+        switch (command) {
+            case "openNew":
+                open(location.href)
+                break
+
+            case "getSolidResourceUriFromWebIdButton":
+                await this.#getSolidResourceUriFromWebId()
+                break
+
+            case "clearCredentials":
+                this.#oidc.clearCredentials()
+                localStorage.clear()
+
                 break
         }
     }

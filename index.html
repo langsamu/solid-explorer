@@ -179,6 +179,13 @@
                     <button data-type="cancel" type="button">cancel</button>
                 </form>
             </dialog>
+            <dialog id="fileMenuContextDialog" is="solid-dialog">
+                <form method="dialog">
+                    <button value="openNew">open new window</button>
+                    <button value="getSolidResourceUriFromWebIdButton">get resourceuri from webid</button>
+                    <button value="clearCredentials">clear credentials</button>
+                </form>
+            </dialog>
 
             <dialog id="authenticationDialog" is="solid-dialog">
                 <form method="dialog">
@@ -260,8 +267,7 @@
             </dialog>
         </div>
         <div>
-            <button id="getSolidResourceUriFromWebIdButton" type="button">Get from WebID</button>
-            <button id="clearCredentialsButton" type="button">Clear credentials</button>
+            <button id="fileMenu">file</button>
         </div>
 
         <div id="addressBar">
