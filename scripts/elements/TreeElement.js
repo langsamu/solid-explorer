@@ -37,7 +37,7 @@ export class TreeElement extends HTMLDetailsElement {
 
         this.#resourceUri = value
 
-        this.#summarySpan.innerText = value.name
+        this.#summarySpan.innerText = value.isRoot ? "root" : value.name
     }
 
     async #onToggle() {
