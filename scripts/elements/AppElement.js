@@ -93,7 +93,7 @@ export class AppElement extends HTMLBodyElement {
 
         let storage
         if (profile.storages.length === 1) {
-            storage = profile.storages
+            storage = profile.storages[0]
         } else {
             storage = await storageSelectDialog.getModalValue(profile.storages)
             if (!storage) {
