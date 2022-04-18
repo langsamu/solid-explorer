@@ -34,6 +34,7 @@ export class AppElement extends HTMLBodyElement {
             this.addEventListener("needResource", this.#onNeedResource.bind(this))
             this.addEventListener("needRoot", this.#onNeedRoot.bind(this))
             this.addEventListener("deleteResource", this.#onDeleteResource.bind(this))
+            this.addEventListener("paste", this.#onPaste.bind(this))
 
             addEventListener("hashchange", this.#onHashChange.bind(this))
 
@@ -324,6 +325,16 @@ export class AppElement extends HTMLBodyElement {
         }
     }
 
+    async #onPaste(e) {
+        if (e.clipboardData.files.length) {
+            e.preventDefault()
+            e.stopPropagation()
+
+            await this.#uploadMultiple(this.#addressBar.resourceUri, e.clipboardData.files)
+            this.#container.refresh()
+        }
+    }
+
 
     async #onNeedChildren(e) {
         const credentials = await this.#oidc.getCredentials()
@@ -358,30 +369,9 @@ export class AppElement extends HTMLBodyElement {
 
     async #uploadMultiple(containerUri, files) {
         for (const file of files) {
-            const extensionToMime = new Map(Object.entries({
-                "txt": Mime.Text,
-                "ttl": Mime.Turtle,
-                "pdf": Mime.Pdf,
-                "svg": Mime.Svg,
-                "html": Mime.Html
-            }))
-
+            const contentType = file.type || AppElement.#mapExtension(file.name)
             const rdfSourceMimes = new Set([Mime.Turtle, Mime.JsonLd, Mime.Trig])
-
-            let contentType = Mime.OctetStream
-            let sourceType = Ldp.NonRdfSource
-
-            const extensionMatch = file.name.match(/(?<=\.)\w+$/) // period followed by 1 or more word chars to end of string
-            if (extensionMatch) {
-                if (extensionToMime.has(extensionMatch[0])) {
-                    contentType = extensionToMime.get(extensionMatch[0])
-
-                    if (rdfSourceMimes.has(contentType)) {
-                        sourceType = Ldp.RdfSource
-                    }
-                }
-            }
-
+            const sourceType = rdfSourceMimes.has(contentType) ? Ldp.RdfSource : Ldp.NonRdfSource
             const resourceUri = `${containerUri}${(encodeURIComponent(file.name))}`
 
             await this.#upload(resourceUri, sourceType, contentType, file)
@@ -476,5 +466,24 @@ export class AppElement extends HTMLBodyElement {
         a.href = blobUrl
         a.download = decodeURIComponent(resourceUri.name)
         a.click()
+    }
+
+    static #mapExtension(name) {
+        const extensionToMime = new Map(Object.entries({
+            "txt": Mime.Text,
+            "ttl": Mime.Turtle,
+            "pdf": Mime.Pdf,
+            "svg": Mime.Svg,
+            "html": Mime.Html
+        }))
+
+        const extensionMatch = name.match(/(?<=\.)\w+$/) // period followed by 1 or more word chars to end of string
+        if (extensionMatch) {
+            if (extensionToMime.has(extensionMatch[0])) {
+                return extensionToMime.get(extensionMatch[0])
+            }
+        }
+
+        return Mime.OctetStream
     }
 }
