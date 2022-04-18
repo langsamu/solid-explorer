@@ -60,18 +60,18 @@ export class OidcCredentialManager extends EventTarget {
     async #getOidcCredentialsFromAuthNWindow(authenticationUrl, encryptionKey) {
         // Open the authN window and wait for it to post us a message with the encrypted OIDC token response
         return await new Promise(async resolve => {
-            window.addEventListener("message", async e => resolve(await OidcCredentialManager.#decryptOidcTokenResponse(e.data, encryptionKey)), {once: true})
+            window.addEventListener("message", async e => {
+                // Notify that user interaction is no longer needed
+                this.dispatchEvent(new CustomEvent("gotInteraction", {bubbles: true}))
+
+                resolve(await OidcCredentialManager.#decryptOidcTokenResponse(e.data, encryptionKey))
+            }, {once: true})
 
             const authenticationWindow = open(authenticationUrl)
 
-            // If popup was blocked then request user interaction so next popup attempt is initiated by user
+            // If popup was blocked then request user interaction to open authentication window
             if (!authenticationWindow) {
-                await new Promise(resolve => this.dispatchEvent(new CustomEvent("needInteraction", {
-                    bubbles: true,
-                    detail: {resolve}
-                })))
-
-                open(authenticationUrl)
+                this.dispatchEvent(new CustomEvent("needInteraction", {bubbles: true, detail: {authenticationUrl}}))
             }
         })
     }

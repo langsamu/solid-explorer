@@ -30,6 +30,7 @@ export class AppElement extends HTMLBodyElement {
 
             this.#oidc.addEventListener("needIdp", this.#onNeedIdp.bind(this))
             this.#oidc.addEventListener("needInteraction", this.#onNeedInteraction.bind(this))
+            this.#oidc.addEventListener("gotInteraction", this.#onGotInteraction.bind(this))
             this.addEventListener("needChildren", this.#onNeedChildren.bind(this))
             this.addEventListener("needResource", this.#onNeedResource.bind(this))
             this.addEventListener("needRoot", this.#onNeedRoot.bind(this))
@@ -82,6 +83,10 @@ export class AppElement extends HTMLBodyElement {
 
     get #authenticationDialog() {
         return document.getElementById("authenticationDialog")
+    }
+
+    get #authenticationLink() {
+        return document.getElementById("authenticationLink")
     }
 
 
@@ -159,12 +164,14 @@ export class AppElement extends HTMLBodyElement {
         e.detail.resolve(await this.#getIdpUri())
     }
 
-    async #onNeedInteraction(e) {
-        if (!await this.#authenticationDialog.getModalValue()) {
-            return
-        }
+    #onNeedInteraction(e) {
+        this.#authenticationLink.href = e.detail.authenticationUrl
+        this.#authenticationDialog.showModal()
+    }
 
-        e.detail.resolve()
+    #onGotInteraction() {
+        this.#authenticationLink.href = ""
+        this.#authenticationDialog.close()
     }
 
     async #onHashChange(e) {
