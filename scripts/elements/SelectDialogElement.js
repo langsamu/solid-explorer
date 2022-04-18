@@ -45,8 +45,13 @@ export class SelectDialogElement extends HTMLDialogElement {
         return this.querySelector("button[data-type = 'cancel']")
     }
 
-    #onSubmit() {
-        this.returnValue = this.#select?.value
+    #onSubmit(e) {
+        if (this.#select) {
+            if (e.submitter) {
+                e.submitter.value = this.#select.value
+            }
+            this.returnValue = this.#select?.value
+        }
     }
 
     #onClickCancel() {

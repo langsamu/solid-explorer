@@ -54,8 +54,13 @@ export class DialogElement extends HTMLDialogElement {
         this.#output.value = this.#input.validationMessage
     }
 
-    #onSubmit() {
-        this.returnValue = this.#input?.value
+    #onSubmit(e) {
+        if (this.#input) {
+            if (e.submitter) {
+                e.submitter.value = this.#input.value
+            }
+            this.returnValue = this.#input?.value
+        }
     }
 
     #onClickCancel() {
