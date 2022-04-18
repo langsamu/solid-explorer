@@ -53,6 +53,18 @@ export class ResourceUri extends URL {
     get name() {
         return last(this.pathname.split(SLASH).filter(pathComponent => pathComponent !== ""))
     }
+
+    isAncestorOf(other) {
+        if (!other instanceof ResourceUri) {
+            return false
+        }
+
+        for (let parent = other.parent; parent; parent = parent.parent) {
+            if (parent.toString() === this.toString()) {
+                return true
+            }
+        }
+    }
 }
 
 function last(array) {

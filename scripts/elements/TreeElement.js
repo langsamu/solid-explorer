@@ -7,6 +7,7 @@ export class TreeElement extends HTMLDetailsElement {
     constructor() {
         super()
 
+        addEventListener("resourceClick", this.#onResourceClick.bind(this), true)
         this.addEventListener("toggle", this.#onToggle.bind(this))
         this.#summarySpan.addEventListener("click", this.#onSummarySpanClick.bind(this))
         this.#summarySpan.addEventListener("dblclick", this.#onSummarySpanDoubleClick.bind(this))
@@ -60,6 +61,8 @@ export class TreeElement extends HTMLDetailsElement {
 
             this.appendChild(childElement)
         }
+
+        this.dispatchEvent(new CustomEvent("gotChildren"))
     }
 
     async #onSummarySpanClick(e) {
@@ -89,5 +92,18 @@ export class TreeElement extends HTMLDetailsElement {
             bubbles: true,
             detail: {resourceUri: this.resourceUri}
         }))
+    }
+
+    async #onResourceClick(e) {
+        if (e.target === this) {
+            return
+        }
+
+        if (this.resourceUri.isAncestorOf(e.detail.resourceUri)) {
+            this.open = true
+
+            // Wait for children to have populated, then dispatch on self so they can capture
+            this.addEventListener("gotChildren", () => this.dispatchEvent(new CustomEvent(e.type, {detail: e.detail})), {once: true})
+        }
     }
 }
