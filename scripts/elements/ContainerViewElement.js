@@ -7,6 +7,8 @@ export class ContainerViewElement extends HTMLDivElement {
 
         this.addEventListener("gotResourceUri", this.refresh.bind(this))
         this.addEventListener("contextmenu", this.#onContextMenu.bind(this))
+        this.addEventListener("click", this.#onClick.bind(this))
+        this.addEventListener("resourceClick", this.#onResourceClick.bind(this))
     }
 
     /** @return {ResourceUri} */
@@ -50,5 +52,34 @@ export class ContainerViewElement extends HTMLDivElement {
             bubbles: true,
             detail: {resourceUri: this.resourceUri}
         }))
+    }
+
+    #onClick(e) {
+        if (e.target !== this) {
+            return
+        }
+
+        this.#deselect()
+
+        this.dispatchEvent(new CustomEvent("resourceClick", {
+            bubbles: true,
+            detail: {resourceUri: this.resourceUri}
+        }))
+    }
+
+    #onResourceClick(e) {
+        if (e.target === this) {
+            return
+        }
+
+        this.#deselect()
+
+        e.target.classList.add("selected")
+    }
+
+    #deselect() {
+        for (const child of this.querySelectorAll("div.selected")) {
+            child.classList.toggle("selected")
+        }
     }
 }
