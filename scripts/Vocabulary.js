@@ -47,7 +47,9 @@ export const Mime = {
     OctetStream: "application/octet-stream",
     Pdf: "application/pdf",
     Svg: "image/svg+xml",
-    Html: "text/html"
+    Html: "text/html",
+    Jpeg: "image/jpeg",
+    Png: "image/png"
 }
 
 export const Oidc = {

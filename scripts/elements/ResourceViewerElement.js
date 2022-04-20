@@ -38,7 +38,7 @@ export class ResourceViewerElement extends HTMLIFrameElement {
             }))
         })
 
-        const mimes = [Mime.Html, Mime.Text, Mime.Turtle, Mime.Pdf, Mime.Svg]
+        const mimes = [Mime.Html, Mime.Text, Mime.Turtle, Mime.Pdf, Mime.Svg, Mime.Jpeg, Mime.Png]
         const mime = resourceResponse.headers.get(HttpHeader.ContentType)
         if (!mimes.some(m => mime.includes(m))) {
             this.src = "about:blank"
