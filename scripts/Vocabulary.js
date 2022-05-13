@@ -49,7 +49,13 @@ export const Mime = {
     Svg: "image/svg+xml",
     Html: "text/html",
     Jpeg: "image/jpeg",
-    Png: "image/png"
+    Png: "image/png",
+    Xml: "text/xml",
+    Ico: "image/vnd.microsoft.icon",
+    Gif: "image/gif",
+    Webp: "image/webp",
+    Bmp: "image/bmp",
+    Ntriples: "application/n-triples"
 }
 
 export const Oidc = {
