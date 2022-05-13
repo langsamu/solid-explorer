@@ -112,7 +112,7 @@ export class AppElement extends HTMLBodyElement {
         }
 
         const rootContainerUri = await SolidClient.getRootContainer(storage, credentials.id_token)
-        const resourceUri = new ResourceUri(profile.storages, undefined, rootContainerUri)
+        const resourceUri = new ResourceUri(storage, undefined, rootContainerUri)
         this.#addressBar.resourceUri = resourceUri
         this.#addressBar.focus()
     }
