@@ -9,6 +9,7 @@ export class WebIdClient {
     static async dereference(webId) {
         if (!this.#profileCache.has(webId)) {
             const response = await fetchJson(webId, {
+                cache: "no-cache",
                 headers: {
                     [HttpHeader.Accept]: Mime.JsonLd
                 }

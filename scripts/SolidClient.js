@@ -8,7 +8,7 @@ import {ResourceUri} from "./ResourceUri.js"
 export class SolidClient {
     static async getAcrUri(resourceUri, idToken) {
         const umaFetch = UmaClient.fetch.bind(undefined, idToken)
-        const resourceResponse = await umaFetch(resourceUri, {method: HttpMethod.Head})
+        const resourceResponse = await umaFetch(resourceUri, {cache: "no-cache", method: HttpMethod.Head})
         const acrUri = resourceResponse.headers.get(HttpHeader.Link).match(Solid.AclLinkHeaderParser)[0]
 
         return acrUri
@@ -17,6 +17,7 @@ export class SolidClient {
     static async getResource(resourceUri, idToken, abortSignal) {
         const umaFetch = UmaClient.fetch.bind(undefined, idToken)
         const init = {
+            cache: "no-cache",
             method: HttpMethod.Get
         }
 
@@ -32,6 +33,7 @@ export class SolidClient {
     static async deleteResource(resourceUri, idToken) {
         const umaFetch = UmaClient.fetch.bind(undefined, idToken)
         const init = {
+            cache: "no-cache",
             method: HttpMethod.Delete
         }
 
@@ -51,6 +53,7 @@ export class SolidClient {
 
         const umaFetch = UmaClient.fetch.bind(undefined, idToken)
         const init = {
+            cache: "no-cache",
             method: HttpMethod.Get,
             headers: {
                 [HttpHeader.Accept]: Mime.JsonLd
@@ -95,6 +98,7 @@ export class SolidClient {
     static async getRootContainer(resourceUri, idToken, abortSignal) {
         const umaFetch = UmaClient.fetch.bind(undefined, idToken)
         const init = {
+            cache: "no-cache",
             method: HttpMethod.Head
         }
 
@@ -119,6 +123,7 @@ export class SolidClient {
     async isRootContainer(resourceUri, idToken, abortSignal) {
         const umaFetch = UmaClient.fetch.bind(undefined, idToken)
         const init = {
+            cache: "no-cache",
             method: HttpMethod.Head
         }
 
@@ -134,6 +139,7 @@ export class SolidClient {
 
     static async getAcr(acrUri, accessToken) {
         const acrResponse = await fetch(acrUri, {
+            cache: "no-cache",
             headers: {
                 [HttpHeader.Accept]: Mime.Turtle,
                 [HttpHeader.Authorization]: bearer(accessToken)
@@ -160,6 +166,7 @@ export class SolidClient {
         }))
 
         await fetch(acrUri, {
+            cache: "no-cache",
             method: HttpMethod.Put,
             headers: {
                 [HttpHeader.ContentType]: Mime.Turtle,
@@ -172,6 +179,7 @@ export class SolidClient {
     static async putResource(resourceUri, sourceType, contentType, body, idToken) {
         const umaFetch = UmaClient.fetch.bind(undefined, idToken)
         const init = {
+            cache: "no-cache",
             method: HttpMethod.Put,
             headers: {
                 [HttpHeader.ContentType]: contentType,
@@ -186,6 +194,7 @@ export class SolidClient {
     static async postResource(resourceUri, sourceType, contentType, slug, idToken) {
         const umaFetch = UmaClient.fetch.bind(undefined, idToken)
         const init = {
+            cache: "no-cache",
             method: HttpMethod.Post,
             headers: {
                 [HttpHeader.Slug]: slug,
