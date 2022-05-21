@@ -11,6 +11,7 @@ export class AppElement extends HTMLBodyElement {
     #containerContextDialog
     #resourceContextDialog
     #fileContextDialog
+    #authenticationDialog
 
     constructor() {
         super()
@@ -81,6 +82,9 @@ export class AppElement extends HTMLBodyElement {
 
             document.getElementById("fileMenu").addEventListener("click", this.#onFileMenu.bind(this))
 
+            this.#authenticationDialog = document.createElement("dialog", {is: "solid-authentication-dialog"})
+            document.body.appendChild(this.#authenticationDialog)
+
             this.#addressBar.addEventListener("resourceUriEntered", this.#onResourceUriEntered.bind(this))
             this.#tree.addEventListener("resourceClick", this.#onTreeResourceClick.bind(this))
             this.#crumbTrail.addEventListener("resourceClick", this.#onCrumbTrailResourceClick.bind(this))
@@ -133,14 +137,6 @@ export class AppElement extends HTMLBodyElement {
 
     get #confirmDialog() {
         return document.getElementById("confirmDialog")
-    }
-
-    get #authenticationDialog() {
-        return document.getElementById("authenticationDialog")
-    }
-
-    get #authenticationLink() {
-        return document.getElementById("authenticationLink")
     }
 
 
@@ -219,12 +215,10 @@ export class AppElement extends HTMLBodyElement {
     }
 
     #onNeedInteraction(e) {
-        this.#authenticationLink.href = e.detail.authenticationUrl
-        this.#authenticationDialog.showModal()
+        this.#authenticationDialog.showModal(e.detail.authenticationUrl)
     }
 
     #onGotInteraction() {
-        this.#authenticationLink.href = ""
         this.#authenticationDialog.close()
     }
 

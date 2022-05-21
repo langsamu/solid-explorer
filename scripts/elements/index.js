@@ -8,6 +8,7 @@ import {ContainerViewItemElement} from "./ContainerViewItemElement.js"
 import {ResourceViewerElement} from "./ResourceViewerElement.js"
 import {AddressBarElement} from "./AddressBarElement.js"
 import {CrumbTrailElement} from "./CrumbTrailElement.js"
+import {AuthenticationDialog} from "./AuthenticationDialog.js"
 
 customElements.define("solid-app", AppElement, {extends: "body"})
 customElements.define("solid-dialog", DialogElement, {extends: "dialog"})
@@ -17,3 +18,4 @@ customElements.define("solid-container-view-item", ContainerViewItemElement, {ex
 customElements.define("solid-resource-viewer", ResourceViewerElement, {extends: "iframe"})
 customElements.define("solid-address-bar", AddressBarElement, {extends: "form"})
 customElements.define("solid-crumb-trail", CrumbTrailElement, {extends: "ul"})
+customElements.define("solid-authentication-dialog", AuthenticationDialog, {extends: "dialog"})
