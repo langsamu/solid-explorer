@@ -8,6 +8,9 @@ export class AppElement extends HTMLBodyElement {
     #oidc
     #webIdUriDialog
     #idpUriDialog
+    #containerContextDialog
+    #resourceContextDialog
+    #fileContextDialog
 
     constructor() {
         super()
@@ -48,6 +51,33 @@ export class AppElement extends HTMLBodyElement {
             getIdpFromWebIdButton.addEventListener("click", this.#getIdpFromWebId.bind(this))
             this.#idpUriDialog.contents.appendChild(getIdpFromWebIdButton)
             document.body.appendChild(this.#idpUriDialog)
+
+            this.#containerContextDialog = document.createElement("dialog", {is: "solid-context-dialog"})
+            this.#containerContextDialog.dataset.title = "Container operations"
+            this.#containerContextDialog.addItem("open", "Open")
+            this.#containerContextDialog.addItem("openNew", "Open in new window")
+            this.#containerContextDialog.addItem("download", "Download RDF")
+            this.#containerContextDialog.addItem("delete", "Delete")
+            this.#containerContextDialog.addItem("deleteRecursive", "Delete recursive")
+            this.#containerContextDialog.addItem("newContainer", "New container")
+            this.#containerContextDialog.addItem("upload", "Upload")
+            this.#containerContextDialog.addItem("uploadVerbose", "Upload…")
+            document.body.appendChild(this.#containerContextDialog)
+
+            this.#resourceContextDialog = document.createElement("dialog", {is: "solid-context-dialog"})
+            this.#resourceContextDialog.dataset.title = "Resource operations"
+            this.#resourceContextDialog.addItem("open","Open")
+            this.#resourceContextDialog.addItem("openNew","Open in new window")
+            this.#resourceContextDialog.addItem("download","Download")
+            this.#resourceContextDialog.addItem("delete","Delete")
+            document.body.appendChild(this.#resourceContextDialog)
+
+            this.#fileContextDialog = document.createElement("dialog", {is: "solid-context-dialog"})
+            this.#fileContextDialog.dataset.title = "App operations"
+            this.#fileContextDialog.addItem("openNew","Open new window")
+            this.#fileContextDialog.addItem("getSolidResourceUriFromWebIdButton","Get resourceuri from webid")
+            this.#fileContextDialog.addItem("clearCredentials","Clear credentials")
+            document.body.appendChild(this.#fileContextDialog)
 
             document.getElementById("fileMenu").addEventListener("click", this.#onFileMenu.bind(this))
 
@@ -256,9 +286,9 @@ export class AppElement extends HTMLBodyElement {
     async #onResourceContextMenu(e) {
         let command
         if (e.detail.resourceUri.isContainer) {
-            command = await document.getElementById("containerContextDialog").getModalValue()
+            command = await this.#containerContextDialog.getModalValue()
         } else {
-            command = await document.getElementById("resourceContextDialog").getModalValue()
+            command = await this.#resourceContextDialog.getModalValue()
         }
 
         switch (command) {
@@ -337,7 +367,7 @@ export class AppElement extends HTMLBodyElement {
     }
 
     async #onFileMenu() {
-        let command = await document.getElementById("fileMenuContextDialog").getModalValue()
+        let command = await this.#fileContextDialog.getModalValue()
 
         switch (command) {
             case "openNew":
