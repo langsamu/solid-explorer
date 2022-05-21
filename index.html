@@ -90,15 +90,7 @@
     </head>
     <body is="solid-app">
         <div>
-            <dialog id="confirmDialog" is="solid-dialog">
-                <form method="dialog">
-                    <fieldset>
-                        <legend>sure?</legend>
-                        <button value="yes"><b>yes</b></button>
-                        <button data-type="cancel" type="button">no</button>
-                    </fieldset>
-                </form>
-            </dialog>
+            <dialog id="confirmDialog" is="solid-ok-cancel-dialog" data-title="Sure?" data-ok-title="Yes" data-ok-value="yes" data-cancel-title="No"></dialog>
             <dialog id="uploadDialog" is="solid-dialog">
                 <form method="dialog">
                     <fieldset>
@@ -141,31 +133,8 @@
                     <option value="application/octet-stream">Binary</option>
                 </datalist>
             </dialog>
-            <dialog id="notFoundDialog" is="solid-dialog">
-                <form method="dialog">
-                    <fieldset>
-                        <legend>not found</legend>
-                        <button><b>OK</b></button>
-                    </fieldset>
-                </form>
-            </dialog>
-            <dialog id="newContainerDialog" is="solid-dialog">
-                <form method="dialog">
-                    <fieldset>
-                        <legend>New container</legend>
-                        <div>
-                            <label>
-                                <span>Container name</span>
-                                <input required>
-                            </label>
-                            <br>
-                            <output></output>
-                        </div>
-                        <button><b>OK</b></button>
-                        <button data-type="cancel" type="button">Cancel</button>
-                    </fieldset>
-                </form>
-            </dialog>
+            <dialog id="notFoundDialog" is="solid-ok-dialog" data-title="Not found"></dialog>
+            <dialog id="newContainerDialog" is="solid-input-dialog" data-title="New container" data-label="Container name" data-required="true"></dialog>
             <dialog id="resourceContextDialog" class="context-menu" is="solid-dialog">
                 <form method="dialog">
                     <button value="open">open</button>
@@ -204,29 +173,6 @@
                     </fieldset>
                 </form>
             </dialog>
-            <dialog id="idpUriDialog" is="solid-dialog">
-                <form method="dialog">
-                    <fieldset>
-                        <legend>Provide IDP URI</legend>
-                        <div>
-                            <label>
-                                <span>IDP URI</span>
-                                <input required type="url" pattern="https?://.*" placeholder="https://openid.example.com" list="identityProviderList">
-                            </label>
-                            <button id="getIdpFromWebIdButton" type="button">Get from WebID</button>
-                            <br>
-                            <output></output>
-                        </div>
-                        <button><b>OK</b></button>
-                        <button data-type="cancel" type="button">Cancel</button>
-                    </fieldset>
-                </form>
-                <datalist id="identityProviderList">
-                    <option value="https://login.inrupt.com"></option>
-                    <option value="https://openid.dev-next.inrupt.com"></option>
-                    <option value="https://broker.pod.inrupt.com"></option>
-                </datalist>
-            </dialog>
             <dialog id="storageSelectDialog" is="solid-select-dialog">
                 <form method="dialog">
                     <fieldset>
@@ -250,28 +196,6 @@
                         <button data-type="cancel" type="button">Cancel</button>
                     </fieldset>
                 </form>
-            </dialog>
-            <dialog id="webIdUriDialog" is="solid-dialog">
-                <form method="dialog">
-                    <fieldset>
-                        <legend>Provide WebID URI</legend>
-                        <div>
-                            <label>
-                                <span>WebID URI</span>
-                                <input required type="url" pattern="https?://.*" placeholder="https://id.example.com/username" list="webIdPrefixList">
-                            </label>
-                            <br>
-                            <output></output>
-                        </div>
-                        <button><b>OK</b></button>
-                        <button data-type="cancel" type="button">Cancel</button>
-                    </fieldset>
-                </form>
-                <datalist id="webIdPrefixList">
-                    <option value="https://id.inrupt.com/"></option>
-                    <option value="https://id.dev-next.inrupt.com/"></option>
-                    <option value="https://pod.inrupt.com/"></option>
-                </datalist>
             </dialog>
         </div>
         <div style="grid-area: menu">

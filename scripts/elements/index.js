@@ -1,3 +1,5 @@
+import "./dialog/index.js"
+
 import {AppElement} from "./AppElement.js"
 import {DialogElement} from "./DialogElement.js"
 import {SelectDialogElement} from "./SelectDialogElement.js"

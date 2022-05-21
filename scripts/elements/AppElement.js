@@ -6,6 +6,8 @@ import {OidcCredentialManager} from "../OidcCredentialManager.js"
 
 export class AppElement extends HTMLBodyElement {
     #oidc
+    #webIdUriDialog
+    #idpUriDialog
 
     constructor() {
         super()
@@ -15,9 +17,39 @@ export class AppElement extends HTMLBodyElement {
 
     connectedCallback() {
         addEventListener("load", async () => {
-            document.getElementById("fileMenu").addEventListener("click", this.#onFileMenu.bind(this))
+            this.#webIdUriDialog = document.createElement("dialog", {is: "solid-input-dialog"})
+            this.#webIdUriDialog.id = "webIdUriDialog"
+            this.#webIdUriDialog.dataset.title="Provide WebID URI"
+            this.#webIdUriDialog.dataset.label="WebID URI"
+            this.#webIdUriDialog.dataset.required = true
+            this.#webIdUriDialog.dataset.type = "url"
+            this.#webIdUriDialog.dataset.pattern = "https?://.*"
+            this.#webIdUriDialog.dataset.placeholder = "https://id.example.com/username"
+            this.#webIdUriDialog.addOption("https://id.inrupt.com/")
+            this.#webIdUriDialog.addOption("https://id.dev-next.inrupt.com/")
+            this.#webIdUriDialog.addOption("https://pod.inrupt.com/")
+            document.body.appendChild(this.#webIdUriDialog)
 
-            document.getElementById("getIdpFromWebIdButton").addEventListener("click", this.#getIdpFromWebId.bind(this))
+            this.#idpUriDialog= document.createElement("dialog", {is: "solid-input-dialog"})
+            this.#idpUriDialog.id = "idpUriDialog"
+            this.#idpUriDialog.dataset.title="Provide IDP URI"
+            this.#idpUriDialog.dataset.label="IDP URI"
+            this.#idpUriDialog.dataset.required = true
+            this.#idpUriDialog.dataset.type = "url"
+            this.#idpUriDialog.dataset.pattern = "https?://.*"
+            this.#idpUriDialog.dataset.placeholder = "https://openid.example.com/username"
+            this.#idpUriDialog.addOption("https://login.inrupt.com/")
+            this.#idpUriDialog.addOption("https://openid.dev-next.inrupt.com/")
+            this.#idpUriDialog.addOption("https://broker.inrupt.com/")
+            const getIdpFromWebIdButton=document.createElement("button")
+            getIdpFromWebIdButton.id = "getIdpFromWebIdButton"
+            getIdpFromWebIdButton.type = "button"
+            getIdpFromWebIdButton.innerText = "Get from WebID"
+            getIdpFromWebIdButton.addEventListener("click", this.#getIdpFromWebId.bind(this))
+            this.#idpUriDialog.contents.appendChild(getIdpFromWebIdButton)
+            document.body.appendChild(this.#idpUriDialog)
+
+            document.getElementById("fileMenu").addEventListener("click", this.#onFileMenu.bind(this))
 
             this.#addressBar.addEventListener("resourceUriEntered", this.#onResourceUriEntered.bind(this))
             this.#tree.addEventListener("resourceClick", this.#onTreeResourceClick.bind(this))
@@ -63,14 +95,6 @@ export class AppElement extends HTMLBodyElement {
 
     get #crumbTrail() {
         return document.querySelector("ul[is=solid-crumb-trail]")
-    }
-
-    get #webIdUriDialog() {
-        return document.getElementById("webIdUriDialog")
-    }
-
-    get #idpUriDialog() {
-        return document.getElementById("idpUriDialog")
     }
 
     get #idpSelectDialog() {
