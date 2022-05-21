@@ -19,8 +19,8 @@ export class AppElement extends HTMLBodyElement {
         addEventListener("load", async () => {
             this.#webIdUriDialog = document.createElement("dialog", {is: "solid-input-dialog"})
             this.#webIdUriDialog.id = "webIdUriDialog"
-            this.#webIdUriDialog.dataset.title="Provide WebID URI"
-            this.#webIdUriDialog.dataset.label="WebID URI"
+            this.#webIdUriDialog.dataset.title = "Provide WebID URI"
+            this.#webIdUriDialog.dataset.label = "WebID URI"
             this.#webIdUriDialog.dataset.required = true
             this.#webIdUriDialog.dataset.type = "url"
             this.#webIdUriDialog.dataset.pattern = "https?://.*"
@@ -30,10 +30,10 @@ export class AppElement extends HTMLBodyElement {
             this.#webIdUriDialog.addOption("https://pod.inrupt.com/")
             document.body.appendChild(this.#webIdUriDialog)
 
-            this.#idpUriDialog= document.createElement("dialog", {is: "solid-input-dialog"})
+            this.#idpUriDialog = document.createElement("dialog", {is: "solid-input-dialog"})
             this.#idpUriDialog.id = "idpUriDialog"
-            this.#idpUriDialog.dataset.title="Provide IDP URI"
-            this.#idpUriDialog.dataset.label="IDP URI"
+            this.#idpUriDialog.dataset.title = "Provide IDP URI"
+            this.#idpUriDialog.dataset.label = "IDP URI"
             this.#idpUriDialog.dataset.required = true
             this.#idpUriDialog.dataset.type = "url"
             this.#idpUriDialog.dataset.pattern = "https?://.*"
@@ -41,7 +41,7 @@ export class AppElement extends HTMLBodyElement {
             this.#idpUriDialog.addOption("https://login.inrupt.com/")
             this.#idpUriDialog.addOption("https://openid.dev-next.inrupt.com/")
             this.#idpUriDialog.addOption("https://broker.inrupt.com/")
-            const getIdpFromWebIdButton=document.createElement("button")
+            const getIdpFromWebIdButton = document.createElement("button")
             getIdpFromWebIdButton.id = "getIdpFromWebIdButton"
             getIdpFromWebIdButton.type = "button"
             getIdpFromWebIdButton.innerText = "Get from WebID"
