@@ -319,12 +319,8 @@ export class AppElement extends HTMLBodyElement {
                 const modalResponse = await document.getElementById("uploadDialog").getModalValue()
 
                 if (modalResponse) {
-                    const fileName = document.getElementById("uploadFileName").value
-                    const sourceType = document.getElementById("uploadSourceType").checked ? Ldp.RdfSource : Ldp.NonRdfSource
-                    const contentType = document.getElementById("uploadContentType").value
-                    const file = document.getElementById("uploadFile").files[0]
-                    const resourceUri = `${e.detail.resourceUri}${fileName}`
-                    await this.#upload(resourceUri, sourceType, contentType, file)
+                    const resourceUri = `${e.detail.resourceUri}${modalResponse.name}`
+                    await this.#upload(resourceUri, modalResponse.source, modalResponse.mime, modalResponse.file)
                     this.#container.refresh()
                 }
 

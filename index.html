@@ -91,48 +91,7 @@
     <body is="solid-app">
         <div>
             <dialog id="confirmDialog" is="solid-ok-cancel-dialog" data-title="Sure?" data-ok-title="Yes" data-ok-value="yes" data-cancel-title="No"></dialog>
-            <dialog id="uploadDialog" is="solid-dialog">
-                <form method="dialog">
-                    <fieldset>
-                        <legend>upload</legend>
-                        <div>
-                            <label>
-                                <span>name</span>
-                                <input id="uploadFileName" required>
-                            </label>
-                            <br>
-                            <output></output>
-                        </div>
-                        <div>
-                            <label>
-                                <span>RDF</span>
-                                <input id="uploadSourceType" type="checkbox">
-                            </label>
-                        </div>
-                        <div>
-                            <label>
-                                <span>content type</span>
-                                <input id="uploadContentType" required pattern="\w+/[\w+-\.]+" list="uploadContentTypeList">
-                            </label>
-                        </div>
-                        <div>
-                            <label>
-                                <span>file</span>
-                                <input id="uploadFile" type="file">
-                            </label>
-                        </div>
-                        <button><b>OK</b></button>
-                        <button data-type="cancel" type="button">Cancel</button>
-                    </fieldset>
-                </form>
-                <datalist id="uploadContentTypeList">
-                    <option value="text/turtle">Turtle</option>
-                    <option value="application/json-ld">JSON-LD</option>
-                    <option value="application/rdf+xml">RDF/XML</option>
-                    <option value="text/plain">Plain text</option>
-                    <option value="application/octet-stream">Binary</option>
-                </datalist>
-            </dialog>
+            <dialog id="uploadDialog" is="solid-upload-dialog"></dialog>
             <dialog id="notFoundDialog" is="solid-ok-dialog" data-title="Not found"></dialog>
             <dialog id="newContainerDialog" is="solid-input-dialog" data-title="New container" data-label="Container name" data-required="true"></dialog>
 

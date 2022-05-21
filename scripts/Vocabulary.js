@@ -55,7 +55,8 @@ export const Mime = {
     Gif: "image/gif",
     Webp: "image/webp",
     Bmp: "image/bmp",
-    Ntriples: "application/n-triples"
+    Ntriples: "application/n-triples",
+    RdfXml: "application/rdf+xml"
 }
 
 export const Oidc = {
