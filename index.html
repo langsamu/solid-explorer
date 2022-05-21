@@ -173,30 +173,8 @@
                     </fieldset>
                 </form>
             </dialog>
-            <dialog id="storageSelectDialog" is="solid-select-dialog">
-                <form method="dialog">
-                    <fieldset>
-                        <legend>select storage uri</legend>
-                        <div>
-                            <label>storage uris <select></select></label>
-                        </div>
-                        <button>ok</button>
-                        <button data-type="cancel" type="button">cancel</button>
-                    </fieldset>
-                </form>
-            </dialog>
-            <dialog id="idpSelectDialog" is="solid-select-dialog">
-                <form method="dialog">
-                    <fieldset>
-                        <legend>Choose IDP</legend>
-                        <div>
-                            <label>IDPs <select></select></label>
-                        </div>
-                        <button><b>OK</b></button>
-                        <button data-type="cancel" type="button">Cancel</button>
-                    </fieldset>
-                </form>
-            </dialog>
+            <dialog id="storageSelectDialog" is="solid-select-dialog" data-title="Select storage URI" data-label="Storage URIs"></dialog>
+            <dialog id="idpSelectDialog" is="solid-select-dialog" data-title="Choose IDP" data-label="IDPs"></dialog>
         </div>
         <div style="grid-area: menu">
             <button id="fileMenu">file</button>
