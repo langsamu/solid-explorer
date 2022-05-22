@@ -3,7 +3,7 @@
   "client_uri": "https://langsamu.github.io/solid-explorer/",
 
   "client_id": "https://langsamu.github.io/solid-explorer/id.jsonld",
-  "logo_uri": "https://langsamu.github.io/solid-explorer/logo.png",
+  "logo_uri": "https://langsamu.github.io/solid-explorer/logo.svg",
   "post_logout_redirect_uris": ["https://langsamu.github.io/solid-explorer/"],
   "redirect_uris": ["https://langsamu.github.io/solid-explorer/authentication.html"],
 
