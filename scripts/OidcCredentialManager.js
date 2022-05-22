@@ -47,7 +47,7 @@ export class OidcCredentialManager extends EventTarget {
         )
 
         const key = btoa(JSON.stringify(await crypto.subtle.exportKey("jwk", keyPair.publicKey)))
-        const authenticationUrl = `./dynamic_authentication.html?${new URLSearchParams({idp, key})}`;
+        const authenticationUrl = `./authentication.html?${new URLSearchParams({idp, key})}`;
         const credentials = await this.#getOidcCredentialsFromAuthNWindow(authenticationUrl, keyPair.privateKey)
 
         return releaseLock() || (this.#credentials = credentials)

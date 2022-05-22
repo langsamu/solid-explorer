@@ -10,7 +10,12 @@ async function onLoad() {
 
     const redirectUri = new URL(location.pathname, location.origin)
     const oidcClient = new OidcClient(idpParam, redirectUri)
-    const {client_id, client_secret} = await oidcClient.register()
+
+    // Use public client ID without secret by default but register client dynamically if on localhost.
+    let client_id = new URL("./id.jsonld", location), client_secret
+    if (["localhost", "127.0.0.1", "::1"].includes(location.hostname)) {
+        ({client_id, client_secret} = await oidcClient.register())
+    }
 
     if (query.has(Oidc.Code)) {
         await processOidcCode(oidcClient, query.get(Oidc.Code), client_id, client_secret, keyParam)
