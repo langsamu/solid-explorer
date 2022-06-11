@@ -2,7 +2,7 @@ import "https://unpkg.com/n3@1.16.2/browser/n3.min.js"
 import "https://unpkg.com/jsonld@5.2.0/dist/jsonld.esm.min.js"
 import {UmaClient} from "./UmaClient.js"
 import {HttpHeader, HttpMethod, Ldp, Mime, Solid} from "./Vocabulary.js"
-import {bearer, toTriples} from "./Utils.js"
+import {bearer, fetchJson, toTriples} from "./Utils.js"
 import {ResourceUri} from "./ResourceUri.js"
 
 export class SolidClient {
@@ -204,5 +204,49 @@ export class SolidClient {
         }
 
         return await umaFetch(resourceUri, init)
+    }
+
+    static async grantAccess(resourceUri, isProvidedTo, mode, idToken) {
+        const [, umaServer] = await UmaClient.parseUmaChallenge(resourceUri, {method: HttpMethod.Head})
+        if (!umaServer) {
+            console.log("UMA not supported")
+            return
+        }
+
+        const uma = new UmaClient(umaServer)
+        const umaDisco = await uma.discover()
+        const vcServer = umaDisco.verifiable_credential_issuer
+
+        const vcDiscoSuffix = "/.well-known/vc-configuration"
+        const vcDisco = await fetchJson(new URL(vcDiscoSuffix, vcServer))
+        const issueEndpoint = vcDisco.issuerService
+
+        const issuanceRequest = {
+            credential: {
+                "@context": [
+                    "https://vc.inrupt.com/credentials/v1",
+                    "https://www.w3.org/2018/credentials/v1",
+                ],
+                type: ["SolidAccessGrant"],
+                credentialSubject: {
+                    providedConsent: {
+                        forPersonalData: [resourceUri],
+                        mode,
+                        isProvidedTo,
+                        hasStatus: "ConsentStatusExplicitlyGiven",
+                    }
+                }
+            }
+        }
+        const accessGrantResponse = await fetch(issueEndpoint, {
+            method: HttpMethod.Post,
+            headers: {
+                [HttpHeader.Authorization]: bearer(idToken),
+                [HttpHeader.ContentType]: Mime.Json
+            },
+            body: JSON.stringify(issuanceRequest)
+        })
+
+        return accessGrantResponse.headers.get(HttpHeader.Location)
     }
 }

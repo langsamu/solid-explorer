@@ -12,7 +12,7 @@ export class UmaClient {
     }
 
     async exchangeTicket(ticket, idToken) {
-        const umaDiscovery = await this.#discover()
+        const umaDiscovery = await this.discover()
 
         const umaToken = await fetchJson(umaDiscovery.token_endpoint, {
             method: HttpMethod.Post,
@@ -32,14 +32,11 @@ export class UmaClient {
     }
 
     static async fetch(idToken, input, init) {
-        const response = await fetch(input, init)
-
-        if (response.ok || response.status !== 401) {
+        const [response, umaServer, umaTicket] = await UmaClient.parseUmaChallenge(input, init)
+        if (!umaServer) {
             return response
         }
 
-        const challenge = response.headers.get(HttpHeader.WwwAuthenticate)
-        const [, umaServer, umaTicket] = Uma.TicketParser.exec(challenge)
         const uma = new UmaClient(umaServer)
 
         const umaAccessToken = await uma.exchangeTicket(umaTicket, idToken)
@@ -49,7 +46,20 @@ export class UmaClient {
         return await fetch(input, newInit)
     }
 
-    async #discover() {
+    static async parseUmaChallenge(input, init) {
+        const response = await fetch(input, init)
+
+        if (response.ok || response.status !== 401) {
+            return [response]
+        }
+
+        const challenge = response.headers.get(HttpHeader.WwwAuthenticate)
+        const [, umaServer, umaTicket] = Uma.TicketParser.exec(challenge)
+
+        return [response, umaServer, umaTicket]
+    }
+
+    async discover() {
         if (!this.#metadataCache.has(this.#authorizationServer)) {
             const response = await fetchJson(new URL(Uma.Discovery, this.#authorizationServer))
 

@@ -12,6 +12,8 @@ export class AppElement extends HTMLBodyElement {
     #resourceContextDialog
     #fileContextDialog
     #authenticationDialog
+    #grantRequestDialog
+    #grantResponseDialog
 
     constructor() {
         super()
@@ -63,27 +65,37 @@ export class AppElement extends HTMLBodyElement {
             this.#containerContextDialog.addItem("newContainer", "New container")
             this.#containerContextDialog.addItem("upload", "Upload")
             this.#containerContextDialog.addItem("uploadVerbose", "Upload…")
+            this.#containerContextDialog.addItem("grantAccess", "Grant access")
             document.body.appendChild(this.#containerContextDialog)
 
             this.#resourceContextDialog = document.createElement("dialog", {is: "solid-context-dialog"})
             this.#resourceContextDialog.dataset.title = "Resource operations"
-            this.#resourceContextDialog.addItem("open","Open")
-            this.#resourceContextDialog.addItem("openNew","Open in new window")
-            this.#resourceContextDialog.addItem("download","Download")
-            this.#resourceContextDialog.addItem("delete","Delete")
+            this.#resourceContextDialog.addItem("open", "Open")
+            this.#resourceContextDialog.addItem("openNew", "Open in new window")
+            this.#resourceContextDialog.addItem("download", "Download")
+            this.#resourceContextDialog.addItem("delete", "Delete")
+            this.#resourceContextDialog.addItem("grantAccess", "Grant access")
             document.body.appendChild(this.#resourceContextDialog)
 
             this.#fileContextDialog = document.createElement("dialog", {is: "solid-context-dialog"})
             this.#fileContextDialog.dataset.title = "App operations"
-            this.#fileContextDialog.addItem("openNew","Open new window")
-            this.#fileContextDialog.addItem("getSolidResourceUriFromWebIdButton","Get resourceuri from webid")
-            this.#fileContextDialog.addItem("clearCredentials","Clear credentials")
+            this.#fileContextDialog.addItem("openNew", "Open new window")
+            this.#fileContextDialog.addItem("getSolidResourceUriFromWebIdButton", "Get resourceuri from webid")
+            this.#fileContextDialog.addItem("clearCredentials", "Clear credentials")
             document.body.appendChild(this.#fileContextDialog)
 
             document.getElementById("fileMenu").addEventListener("click", this.#onFileMenu.bind(this))
 
             this.#authenticationDialog = document.createElement("dialog", {is: "solid-authentication-dialog"})
             document.body.appendChild(this.#authenticationDialog)
+
+            this.#grantRequestDialog = document.createElement("dialog", {is: "solid-grant-request-dialog"})
+            this.#grantRequestDialog.dataset.title = "Grant access"
+            document.body.appendChild(this.#grantRequestDialog)
+
+            this.#grantResponseDialog = document.createElement("dialog", {is: "solid-grant-response-dialog"})
+            this.#grantResponseDialog.dataset.title = "Access grant URI"
+            document.body.appendChild(this.#grantResponseDialog)
 
             this.#addressBar.addEventListener("resourceUriEntered", this.#onResourceUriEntered.bind(this))
             this.#tree.addEventListener("resourceClick", this.#onTreeResourceClick.bind(this))
@@ -353,6 +365,10 @@ export class AppElement extends HTMLBodyElement {
             case "deleteRecursive":
                 await this.#deleteRecursive(e.detail.resourceUri)
                 break
+
+            case "grantAccess":
+                await this.#grantAccess(e.detail.resourceUri)
+                break
         }
     }
 
@@ -536,5 +552,20 @@ export class AppElement extends HTMLBodyElement {
         }
 
         return Mime.OctetStream
+    }
+
+    async #grantAccess(resourceUri) {
+        const grantRequestModalResponse = await this.#grantRequestDialog.getModalValue()
+        if (!grantRequestModalResponse) {
+            return
+        }
+
+        const credentials = await this.#oidc.getCredentials()
+        const accessGrantUri = await SolidClient.grantAccess(resourceUri, grantRequestModalResponse.webid, grantRequestModalResponse.modes, credentials.id_token)
+        if (!accessGrantUri) {
+            return
+        }
+
+        await this.#grantResponseDialog.showModal(accessGrantUri)
     }
 }

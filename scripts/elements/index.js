@@ -9,6 +9,8 @@ import {AddressBarElement} from "./AddressBarElement.js"
 import {CrumbTrailElement} from "./CrumbTrailElement.js"
 import {AuthenticationDialog} from "./AuthenticationDialog.js"
 import {UploadDialog} from "./UploadDialog.js"
+import {GrantRequestDialog} from "./GrantRequestDialog.js"
+import {GrantResponseDialog} from "./GrantResponseDialog.js"
 
 customElements.define("solid-app", AppElement, {extends: "body"})
 customElements.define("solid-tree", TreeElement, {extends: "details"})
@@ -19,3 +21,5 @@ customElements.define("solid-address-bar", AddressBarElement, {extends: "form"})
 customElements.define("solid-crumb-trail", CrumbTrailElement, {extends: "ul"})
 customElements.define("solid-authentication-dialog", AuthenticationDialog, {extends: "dialog"})
 customElements.define("solid-upload-dialog", UploadDialog, {extends: "dialog"})
+customElements.define("solid-grant-request-dialog", GrantRequestDialog, {extends: "dialog"})
+customElements.define("solid-grant-response-dialog", GrantResponseDialog, {extends: "dialog"})

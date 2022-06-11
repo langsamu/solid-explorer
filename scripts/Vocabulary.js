@@ -4,7 +4,8 @@ export const HttpHeader = {
     WwwAuthenticate: "WWW-authenticate",
     Authorization: "Authorization",
     Link: "Link",
-    Slug: "Slug"
+    Slug: "Slug",
+    Location: "Location"
 }
 
 export const HttpMethod = {
