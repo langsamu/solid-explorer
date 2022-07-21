@@ -46,10 +46,9 @@ export class AddressBarElement extends HTMLFormElement {
 
                 break;
             case "go":
-                this.dispatchEvent(new CustomEvent("resourceUriSet", {detail: {resourceUri: this.resourceUri}}))
                 this.dispatchEvent(new CustomEvent("resourceUriEntered", {
                     bubbles: true,
-                    detail: {resourceUri: this.resourceUri}
+                    detail: {resourceUri: this.#input.value}
                 }))
 
                 break;

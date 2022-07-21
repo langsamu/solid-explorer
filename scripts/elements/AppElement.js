@@ -276,11 +276,7 @@ The window will then close and the operation will continue.<br>
     }
 
     async #onResourceUriEntered(e) {
-        if (e.detail.resourceUri.isContainer) {
-            location.hash = encodeURIComponent(e.detail.resourceUri)
-        } else {
-            await this.#open(e.detail.resourceUri)
-        }
+        location.hash = encodeURIComponent(e.detail.resourceUri)
     }
 
     async #onDeleteResource(e) {
