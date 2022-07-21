@@ -47,12 +47,16 @@ export class AppElement extends HTMLBodyElement {
             this.#idpUriDialog.addOption("https://login.inrupt.com/")
             this.#idpUriDialog.addOption("https://openid.dev-next.inrupt.com/")
             this.#idpUriDialog.addOption("https://broker.inrupt.com/")
-            const getIdpFromWebIdButton = document.createElement("button")
-            getIdpFromWebIdButton.id = "getIdpFromWebIdButton"
-            getIdpFromWebIdButton.type = "button"
-            getIdpFromWebIdButton.innerText = "Get from WebID"
+            const idpDescriptionDiv = document.createElement("aside")
+            idpDescriptionDiv.innerHTML = `
+The operation you attempted requires proof that you are who you say you are.<br>
+Please provide the address of an identity provider that can vouch for you.<br>
+The provider will open in a new window where you'll likely login/register.<br>
+The window will then close and the operation will continue.<br>
+💡 You can also <button type="button">get the IDP URI from your WebID</button>. You might need to provide your WebID if you haven't yet.`
+            const getIdpFromWebIdButton = idpDescriptionDiv.querySelector("button")
             getIdpFromWebIdButton.addEventListener("click", this.#getIdpFromWebId.bind(this))
-            this.#idpUriDialog.contents.appendChild(getIdpFromWebIdButton)
+            this.#idpUriDialog.contents.appendChild(idpDescriptionDiv)
             document.body.appendChild(this.#idpUriDialog)
 
             this.#containerContextDialog = document.createElement("dialog", {is: "solid-context-dialog"})
