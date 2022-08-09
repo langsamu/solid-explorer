@@ -1,4 +1,4 @@
-import {OkDialog} from "./dialog/OkDialog.js"
+import {OkDialog} from "../../packages/dialog/OkDialog.js"
 
 export class GrantResponseDialog extends OkDialog {
     #link

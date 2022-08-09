@@ -1,4 +1,4 @@
-import "./dialog/index.js"
+import "../../packages/dialog/index.js"
 
 import {AppElement} from "./AppElement.js"
 import {TreeElement} from "./TreeElement.js"

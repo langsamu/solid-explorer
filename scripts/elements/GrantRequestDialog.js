@@ -1,4 +1,4 @@
-import {OkCancelDialog} from "./dialog/OkCancelDialog.js"
+import {OkCancelDialog} from "../../packages/dialog/OkCancelDialog.js"
 
 export class GrantRequestDialog extends OkCancelDialog {
     #webid

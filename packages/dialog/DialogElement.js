@@ -1,4 +1,4 @@
-export class NewDialogElement extends HTMLDialogElement {
+export class DialogElement extends HTMLDialogElement {
     #form = document.createElement("form")
     #legend = document.createElement("legend")
     #contents = document.createElement("div")
