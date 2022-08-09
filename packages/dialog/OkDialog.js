@@ -1,6 +1,6 @@
-import {NewDialogElement} from "./NewDialogElement.js"
+import {DialogElement} from "./DialogElement.js"
 
-export class OkDialog extends NewDialogElement {
+export class OkDialog extends DialogElement {
     #okButton = document.createElement("button")
 
     constructor() {

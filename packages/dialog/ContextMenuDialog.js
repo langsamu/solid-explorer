@@ -1,6 +1,6 @@
-import {NewDialogElement} from "./NewDialogElement.js"
+import {DialogElement} from "./DialogElement.js"
 
-export class ContextMenuDialog extends NewDialogElement {
+export class ContextMenuDialog extends DialogElement {
     #options = new Map
     #menu
 

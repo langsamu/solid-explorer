@@ -1,6 +1,11 @@
-export class OidcCredentialManager extends EventTarget {
+export class OidcCredentialManager {
     #credentials
     #gettingCredentials
+    #ui
+
+    addUi(container){
+        this.#ui = container.appendChild(container.ownerDocument.createElement("solid-oidc-ui"))
+    }
 
     async getCredentials() {
         if (this.#gettingCredentials instanceof Promise) {
@@ -22,12 +27,7 @@ export class OidcCredentialManager extends EventTarget {
         let releaseLock
         this.#gettingCredentials = new Promise(resolve => releaseLock = () => resolve(this.#gettingCredentials = null))
 
-        const idp = await new Promise(resolve => {
-            this.dispatchEvent(new CustomEvent("needIdp", {
-                bubbles: true,
-                detail: {resolve}
-            }));
-        })
+        const idp = await this.#ui.getIdpUri()
         if (!idp) {
             return releaseLock()
         }
@@ -57,12 +57,16 @@ export class OidcCredentialManager extends EventTarget {
         this.#credentials = null
     }
 
+    async getStorageFromWebId() {
+        return this.#ui.getStorageFromWebId()
+    }
+
     async #getOidcCredentialsFromAuthNWindow(authenticationUrl, encryptionKey) {
         // Open the authN window and wait for it to post us a message with the encrypted OIDC token response
         return await new Promise(async resolve => {
             window.addEventListener("message", async e => {
                 // Notify that user interaction is no longer needed
-                this.dispatchEvent(new CustomEvent("gotInteraction", {bubbles: true}))
+                this.#ui.gotInteraction()
 
                 resolve(await OidcCredentialManager.#decryptOidcTokenResponse(e.data, encryptionKey))
             }, {once: true})
@@ -71,7 +75,7 @@ export class OidcCredentialManager extends EventTarget {
 
             // If popup was blocked then request user interaction to open authentication window
             if (!authenticationWindow) {
-                this.dispatchEvent(new CustomEvent("needInteraction", {bubbles: true, detail: {authenticationUrl}}))
+                this.#ui.needInteraction(authenticationUrl)
             }
         })
     }

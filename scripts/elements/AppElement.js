@@ -1,17 +1,13 @@
-import {WebIdClient} from "../WebIdClient.js"
 import {SolidClient} from "../SolidClient.js"
 import {Ldp, Mime} from "../Vocabulary.js"
 import {ResourceUri} from "../ResourceUri.js"
-import {OidcCredentialManager} from "../OidcCredentialManager.js"
+import {OidcCredentialManager} from "../../packages/oidc/index.js"
 
 export class AppElement extends HTMLBodyElement {
     #oidc
-    #webIdUriDialog
-    #idpUriDialog
     #containerContextDialog
     #resourceContextDialog
     #fileContextDialog
-    #authenticationDialog
     #grantRequestDialog
     #grantResponseDialog
 
@@ -22,43 +18,9 @@ export class AppElement extends HTMLBodyElement {
     }
 
     connectedCallback() {
+        this.#oidc.addUi(this)
+
         addEventListener("load", async () => {
-            this.#webIdUriDialog = document.createElement("dialog", {is: "solid-input-dialog"})
-            this.#webIdUriDialog.id = "webIdUriDialog"
-            this.#webIdUriDialog.dataset.title = "Provide WebID URI"
-            this.#webIdUriDialog.dataset.label = "WebID URI"
-            this.#webIdUriDialog.dataset.required = true
-            this.#webIdUriDialog.dataset.type = "url"
-            this.#webIdUriDialog.dataset.pattern = "https?://.*"
-            this.#webIdUriDialog.dataset.placeholder = "https://id.example.com/username"
-            this.#webIdUriDialog.addOption("https://id.inrupt.com/")
-            this.#webIdUriDialog.addOption("https://id.dev-next.inrupt.com/")
-            this.#webIdUriDialog.addOption("https://pod.inrupt.com/")
-            document.body.appendChild(this.#webIdUriDialog)
-
-            this.#idpUriDialog = document.createElement("dialog", {is: "solid-input-dialog"})
-            this.#idpUriDialog.id = "idpUriDialog"
-            this.#idpUriDialog.dataset.title = "Provide IDP URI"
-            this.#idpUriDialog.dataset.label = "IDP URI"
-            this.#idpUriDialog.dataset.required = true
-            this.#idpUriDialog.dataset.type = "url"
-            this.#idpUriDialog.dataset.pattern = "https?://.*"
-            this.#idpUriDialog.dataset.placeholder = "https://openid.example.com/username"
-            this.#idpUriDialog.addOption("https://login.inrupt.com/")
-            this.#idpUriDialog.addOption("https://openid.dev-next.inrupt.com/")
-            this.#idpUriDialog.addOption("https://broker.inrupt.com/")
-            const idpDescriptionDiv = document.createElement("aside")
-            idpDescriptionDiv.innerHTML = `
-The operation you attempted requires proof that you are who you say you are.<br>
-Please provide the address of an identity provider that can vouch for you.<br>
-The provider will open in a new window where you'll likely login/register.<br>
-The window will then close and the operation will continue.<br>
-💡 You can also <button type="button">get the IDP URI from your WebID</button>. You might need to provide your WebID if you haven't yet.`
-            const getIdpFromWebIdButton = idpDescriptionDiv.querySelector("button")
-            getIdpFromWebIdButton.addEventListener("click", this.#getIdpFromWebId.bind(this))
-            this.#idpUriDialog.contents.appendChild(idpDescriptionDiv)
-            document.body.appendChild(this.#idpUriDialog)
-
             this.#containerContextDialog = document.createElement("dialog", {is: "solid-context-dialog"})
             this.#containerContextDialog.dataset.title = "Container operations"
             this.#containerContextDialog.addItem("open", "Open")
@@ -90,9 +52,6 @@ The window will then close and the operation will continue.<br>
 
             document.getElementById("fileMenu").addEventListener("click", this.#onFileMenu.bind(this))
 
-            this.#authenticationDialog = document.createElement("dialog", {is: "solid-authentication-dialog"})
-            document.body.appendChild(this.#authenticationDialog)
-
             this.#grantRequestDialog = document.createElement("dialog", {is: "solid-grant-request-dialog"})
             this.#grantRequestDialog.dataset.title = "Grant access"
             document.body.appendChild(this.#grantRequestDialog)
@@ -110,9 +69,6 @@ The window will then close and the operation will continue.<br>
             this.#container.addEventListener("resourceContextMenu", this.#onResourceContextMenu.bind(this))
             this.#tree.addEventListener("resourceContextMenu", this.#onResourceContextMenu.bind(this))
 
-            this.#oidc.addEventListener("needIdp", this.#onNeedIdp.bind(this))
-            this.#oidc.addEventListener("needInteraction", this.#onNeedInteraction.bind(this))
-            this.#oidc.addEventListener("gotInteraction", this.#onGotInteraction.bind(this))
             this.addEventListener("needChildren", this.#onNeedChildren.bind(this))
             this.addEventListener("needResource", this.#onNeedResource.bind(this))
             this.addEventListener("needRoot", this.#onNeedRoot.bind(this))
@@ -147,30 +103,13 @@ The window will then close and the operation will continue.<br>
         return document.querySelector("ul[is=solid-crumb-trail]")
     }
 
-    get #idpSelectDialog() {
-        return document.getElementById("idpSelectDialog")
-    }
-
     get #confirmDialog() {
         return document.getElementById("confirmDialog")
     }
 
 
     async #getSolidResourceUriFromWebId() {
-        const profile = await this.#getWebIdProfile()
-        if (!profile) {
-            return
-        }
-
-        let storage
-        if (profile.storages.length === 1) {
-            storage = profile.storages[0]
-        } else {
-            storage = await storageSelectDialog.getModalValue(profile.storages)
-            if (!storage) {
-                return
-            }
-        }
+        const storage = await this.#oidc.getStorageFromWebId()
 
         const credentials = await this.#oidc.getCredentials()
         if (!credentials) {
@@ -181,61 +120,6 @@ The window will then close and the operation will continue.<br>
         const resourceUri = new ResourceUri(storage, undefined, rootContainerUri)
         this.#addressBar.resourceUri = resourceUri
         this.#addressBar.focus()
-    }
-
-    async #getWebIdProfile() {
-        const webIdUri = await this.#getWebIdUri()
-        if (!webIdUri) {
-            return
-        }
-
-        return await WebIdClient.dereference(webIdUri)
-    }
-
-    async #getWebIdUri() {
-        if (!localStorage.getItem("webIdUri")) {
-            localStorage.setItem("webIdUri", await this.#webIdUriDialog.getModalValue())
-        }
-
-        return localStorage.getItem("webIdUri")
-    }
-
-    async #getIdpFromWebId() {
-        const profile = await this.#getWebIdProfile()
-        if (!profile) {
-            return
-        }
-
-        if (profile.issuers.length === 1) {
-            this.#idpUriDialog.value = profile.issuers[0]
-        } else {
-            this.#idpUriDialog.value = await this.#idpSelectDialog.getModalValue(profile.issuers)
-        }
-    }
-
-    async #getIdpUri() {
-        if (!localStorage.getItem("idpUri")) {
-            const value = await this.#idpUriDialog.getModalValue()
-            if (!value) {
-                return
-            }
-
-            localStorage.setItem("idpUri", value)
-        }
-
-        return localStorage.getItem("idpUri")
-    }
-
-    async #onNeedIdp(e) {
-        e.detail.resolve(await this.#getIdpUri())
-    }
-
-    #onNeedInteraction(e) {
-        this.#authenticationDialog.showModal(e.detail.authenticationUrl)
-    }
-
-    #onGotInteraction() {
-        this.#authenticationDialog.close()
     }
 
     async #onHashChange(e) {
