@@ -1,6 +1,6 @@
-import {HttpHeader, HttpMethod, Mime, Oidc, Solid} from "./Vocabulary.js"
-import {Cache} from "./Cache.js"
-import {basic, fetchJson} from "./Utils.js"
+import {HttpHeader, HttpMethod, Mime, Oidc, Solid} from "../../scripts/Vocabulary.js"
+import {Cache} from "../../scripts/Cache.js"
+import {basic, fetchJson} from "../../scripts/Utils.js"
 
 export class OidcClient {
     static #registrationMinTtlMillis = 10 * 1000

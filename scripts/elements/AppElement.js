@@ -2,7 +2,7 @@ import {WebIdClient} from "../WebIdClient.js"
 import {SolidClient} from "../SolidClient.js"
 import {Ldp, Mime} from "../Vocabulary.js"
 import {ResourceUri} from "../ResourceUri.js"
-import {OidcCredentialManager} from "../OidcCredentialManager.js"
+import {OidcCredentialManager} from "../../packages/oidc/index.js"
 
 export class AppElement extends HTMLBodyElement {
     #oidc
