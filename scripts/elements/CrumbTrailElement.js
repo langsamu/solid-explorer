@@ -54,3 +54,5 @@ export class CrumbTrailElement extends HTMLUListElement {
         }
     }
 }
+
+customElements.define("solid-crumb-trail", CrumbTrailElement, {extends: "ul"})

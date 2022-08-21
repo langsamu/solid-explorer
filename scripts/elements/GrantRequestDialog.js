@@ -64,3 +64,5 @@ export class GrantRequestDialog extends OkCancelDialog {
         }
     }
 }
+
+customElements.define("solid-grant-request-dialog", GrantRequestDialog, {extends: "dialog"})

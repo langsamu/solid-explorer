@@ -24,3 +24,5 @@ export class OkDialog extends DialogElement {
         }
     }
 }
+
+customElements.define("solid-ok-dialog", OkDialog, {extends: "dialog"})

@@ -66,3 +66,5 @@ export class ContainerViewItemElement extends HTMLDivElement {
         }))
     }
 }
+
+customElements.define("solid-container-view-item", ContainerViewItemElement, {extends: "div"})

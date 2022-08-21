@@ -29,3 +29,5 @@ export class ContextMenuDialog extends DialogElement {
         this.#options.set(value, title)
     }
 }
+
+customElements.define("solid-context-dialog", ContextMenuDialog, {extends: "dialog"})

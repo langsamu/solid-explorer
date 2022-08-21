@@ -1,4 +1,4 @@
-export class AuthenticationDialog extends HTMLDialogElement {
+class AuthenticationDialog extends HTMLDialogElement {
     #link
 
     constructor() {
@@ -17,3 +17,5 @@ export class AuthenticationDialog extends HTMLDialogElement {
         super.showModal()
     }
 }
+
+customElements.define("solid-authentication-dialog", AuthenticationDialog, {extends: "dialog"})

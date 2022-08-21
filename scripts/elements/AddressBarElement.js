@@ -1,6 +1,6 @@
 import {ResourceUri} from "../ResourceUri.js"
 
-export class AddressBarElement extends HTMLFormElement {
+class AddressBarElement extends HTMLFormElement {
     /** @type {ResourceUri} */
     #resourceUri
 
@@ -64,3 +64,5 @@ export class AddressBarElement extends HTMLFormElement {
         this.#input.focus()
     }
 }
+
+customElements.define("solid-address-bar", AddressBarElement, {extends: "form"})

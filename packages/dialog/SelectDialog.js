@@ -53,3 +53,5 @@ export class SelectDialog extends OkCancelDialog {
         this.returnValue = this.#select.value
     }
 }
+
+customElements.define("solid-select-dialog", SelectDialog, {extends: "dialog"})

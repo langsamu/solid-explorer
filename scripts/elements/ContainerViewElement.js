@@ -1,3 +1,5 @@
+import "./ContainerViewItemElement.js"
+
 export class ContainerViewElement extends HTMLDivElement {
     /** @type {ResourceUri} */
     #resourceUri
@@ -83,3 +85,5 @@ export class ContainerViewElement extends HTMLDivElement {
         }
     }
 }
+
+customElements.define("solid-container-view", ContainerViewElement, {extends: "div"})

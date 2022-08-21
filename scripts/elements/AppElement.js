@@ -1,9 +1,13 @@
+import "./GrantRequestDialog.js"
+import "./GrantResponseDialog.js"
+import "../../packages/dialog/ContextMenuDialog.js"
+
 import {SolidClient} from "../SolidClient.js"
 import {Ldp, Mime} from "../Vocabulary.js"
 import {ResourceUri} from "../ResourceUri.js"
-import {OidcCredentialManager} from "../../packages/oidc/index.js"
+import {OidcCredentialManager} from "../../packages/oidc/OidcCredentialManager.js"
 
-export class AppElement extends HTMLBodyElement {
+class AppElement extends HTMLBodyElement {
     #oidc
     #containerContextDialog
     #resourceContextDialog
@@ -453,3 +457,5 @@ export class AppElement extends HTMLBodyElement {
         await this.#grantResponseDialog.showModal(accessGrantUri)
     }
 }
+
+customElements.define("solid-app", AppElement, {extends: "body"})

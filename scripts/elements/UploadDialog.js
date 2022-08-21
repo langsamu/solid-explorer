@@ -68,3 +68,5 @@ export class UploadDialog extends OkCancelDialog {
         yield ["Binary", Mime.OctetStream]
     }
 }
+
+customElements.define("solid-upload-dialog", UploadDialog, {extends: "dialog"})

@@ -107,3 +107,5 @@ export class TreeElement extends HTMLDetailsElement {
         }
     }
 }
+
+customElements.define("solid-tree", TreeElement, {extends: "details"})

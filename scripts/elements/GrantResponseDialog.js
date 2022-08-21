@@ -29,3 +29,5 @@ export class GrantResponseDialog extends OkDialog {
         await navigator.clipboard.writeText(this.#code.innerText)
     }
 }
+
+customElements.define("solid-grant-response-dialog", GrantResponseDialog, {extends: "dialog"})

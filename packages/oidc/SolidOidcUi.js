@@ -1,6 +1,10 @@
+import "../dialog/InputDialog.js"
+import "../dialog/SelectDialog.js"
+import "./AuthenticationDialog.js"
+
 import {WebIdClient} from "../../scripts/WebIdClient.js"
 
-export class SolidOidcUi extends HTMLElement {
+class SolidOidcUi extends HTMLElement {
     #idpUriDialog
     #webIdUriDialog
     #idpSelectDialog
@@ -127,3 +131,5 @@ The window will then close and the operation will continue.<br>
         return localStorage.getItem("webIdUri")
     }
 }
+
+customElements.define("solid-oidc-ui", SolidOidcUi)

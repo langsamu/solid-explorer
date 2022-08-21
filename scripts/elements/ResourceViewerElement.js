@@ -106,6 +106,8 @@ export class ResourceViewerElement extends HTMLIFrameElement {
     }
 }
 
+customElements.define("solid-resource-viewer", ResourceViewerElement, {extends: "iframe"})
+
 class ContentType {
     original
 

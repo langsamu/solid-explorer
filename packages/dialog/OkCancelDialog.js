@@ -27,3 +27,5 @@ export class OkCancelDialog extends OkDialog {
         this.close()
     }
 }
+
+customElements.define("solid-ok-cancel-dialog", OkCancelDialog, {extends: "dialog"})

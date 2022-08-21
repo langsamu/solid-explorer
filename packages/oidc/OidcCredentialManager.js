@@ -1,3 +1,5 @@
+import "./SolidOidcUi.js"
+
 export class OidcCredentialManager {
     #credentials
     #gettingCredentials

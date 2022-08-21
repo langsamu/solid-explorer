@@ -72,3 +72,5 @@ export class InputDialog extends OkCancelDialog {
         this.returnValue = this.#input.value
     }
 }
+
+customElements.define("solid-input-dialog", InputDialog, {extends: "dialog"})
