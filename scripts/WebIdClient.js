@@ -1,6 +1,6 @@
-import {HttpHeader, Mime, Pim, Solid} from "./Vocabulary.js"
-import {fetchJson, toTriples} from "./Utils.js"
-import {Cache} from "./Cache.js"
+import {HttpHeader, Mime, Pim, Solid} from "../packages/common/Vocabulary.js"
+import {fetchJson, toTriples} from "../packages/common/Utils.js"
+import {Cache} from "../packages/common/Cache.js"
 import "https://unpkg.com/jsonld@5.2.0/dist/jsonld.esm.min.js"
 
 export class WebIdClient {

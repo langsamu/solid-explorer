@@ -1,4 +1,4 @@
-import {Oidc} from "../../scripts/Vocabulary.js"
+import {Oidc} from "../common/Vocabulary.js"
 import {OidcClient} from "./OidcClient.js"
 
 addEventListener("load", onLoad)

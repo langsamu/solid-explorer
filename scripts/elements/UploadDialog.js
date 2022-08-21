@@ -1,5 +1,5 @@
 import {OkCancelDialog} from "../../packages/dialog/OkCancelDialog.js"
-import {Ldp, Mime} from "../Vocabulary.js"
+import {Ldp, Mime} from "../../packages/common/Vocabulary.js"
 
 export class UploadDialog extends OkCancelDialog {
     #name

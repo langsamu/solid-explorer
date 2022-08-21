@@ -1,4 +1,4 @@
-import {HttpHeader, Mime} from "../Vocabulary.js"
+import {HttpHeader, Mime} from "../../packages/common/Vocabulary.js"
 
 export class ResourceViewerElement extends HTMLIFrameElement {
     /** @type {ResourceUri} */

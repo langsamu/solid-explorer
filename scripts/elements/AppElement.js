@@ -3,7 +3,7 @@ import "./GrantResponseDialog.js"
 import "../../packages/dialog/ContextMenuDialog.js"
 
 import {SolidClient} from "../SolidClient.js"
-import {Ldp, Mime} from "../Vocabulary.js"
+import {Ldp, Mime} from "../../packages/common/Vocabulary.js"
 import {ResourceUri} from "../ResourceUri.js"
 import {OidcCredentialManager} from "../../packages/oidc/OidcCredentialManager.js"
 

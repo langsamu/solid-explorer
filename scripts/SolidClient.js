@@ -1,8 +1,8 @@
 import "https://unpkg.com/n3@1.16.2/browser/n3.min.js"
 import "https://unpkg.com/jsonld@5.2.0/dist/jsonld.esm.min.js"
 import {UmaClient} from "./UmaClient.js"
-import {HttpHeader, HttpMethod, Ldp, Mime, Solid} from "./Vocabulary.js"
-import {bearer, fetchJson, toTriples} from "./Utils.js"
+import {HttpHeader, HttpMethod, Ldp, Mime, Solid} from "../packages/common/Vocabulary.js"
+import {bearer, fetchJson, toTriples} from "../packages/common/Utils.js"
 import {ResourceUri} from "./ResourceUri.js"
 
 export class SolidClient {

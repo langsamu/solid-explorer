@@ -1,6 +1,6 @@
-import {HttpHeader, HttpMethod, Mime, Oidc, Uma} from "./Vocabulary.js"
-import {bearer, fetchJson} from "./Utils.js"
-import {Cache} from "./Cache.js"
+import {HttpHeader, HttpMethod, Mime, Oidc, Uma} from "../packages/common/Vocabulary.js"
+import {bearer, fetchJson} from "../packages/common/Utils.js"
+import {Cache} from "../packages/common/Cache.js"
 
 export class UmaClient {
     #authorizationServer
