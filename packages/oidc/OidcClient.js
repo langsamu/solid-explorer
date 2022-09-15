@@ -1,6 +1,6 @@
 import {HttpHeader, HttpMethod, Mime, Oidc, Solid} from "../common/Vocabulary.js"
 import {Cache} from "../common/Cache.js"
-import {basic, fetchJson} from "../common/Utils.js"
+import {basic} from "../common/Utils.js"
 
 export class OidcClient {
     static #registrationMinTtlMillis = 10 * 1000
@@ -21,7 +21,7 @@ export class OidcClient {
         if (!this.#clientCache.has(this.#identityProvider)) {
             const disco = await this.#discover()
 
-            const oidcRegistration = await fetchJson(disco.registration_endpoint, {
+            const response = await fetch(disco.registration_endpoint, {
                 method: HttpMethod.Post,
                 headers: {
                     [HttpHeader.ContentType]: Mime.Json
@@ -30,6 +30,7 @@ export class OidcClient {
                     redirect_uris: [this.#redirectUri]
                 })
             })
+            const oidcRegistration = await response.json()
 
             this.#clientCache.set(this.#identityProvider, oidcRegistration)
         }
@@ -77,14 +78,16 @@ export class OidcClient {
             }
         }
 
-        return await fetchJson(disco.token_endpoint, init)
+        const response = await fetch(disco.token_endpoint, init)
+        return await response.json()
     }
 
     async #discover() {
         if (!this.#metadataCache.has(this.#identityProvider)) {
-            const response = await fetchJson(new URL(Oidc.Discovery, this.#identityProvider))
+            const response = await fetch(new URL(Oidc.Discovery, this.#identityProvider))
+            const json = await response.json()
 
-            this.#metadataCache.set(this.#identityProvider, response)
+            this.#metadataCache.set(this.#identityProvider, json)
         }
 
         return this.#metadataCache.get(this.#identityProvider)

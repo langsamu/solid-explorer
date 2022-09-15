@@ -2,7 +2,7 @@ import "https://unpkg.com/n3@1.16.2/browser/n3.min.js"
 import "https://unpkg.com/jsonld@5.2.0/dist/jsonld.esm.min.js"
 import {UmaClient} from "./UmaClient.js"
 import {HttpHeader, HttpMethod, Ldp, Mime, Solid} from "../packages/common/Vocabulary.js"
-import {bearer, fetchJson, toTriples} from "../packages/common/Utils.js"
+import {bearer, toTriples} from "../packages/common/Utils.js"
 import {ResourceUri} from "./ResourceUri.js"
 
 export class SolidClient {
@@ -218,7 +218,8 @@ export class SolidClient {
         const vcServer = umaDisco.verifiable_credential_issuer
 
         const vcDiscoSuffix = "/.well-known/vc-configuration"
-        const vcDisco = await fetchJson(new URL(vcDiscoSuffix, vcServer))
+        const response = await fetch(new URL(vcDiscoSuffix, vcServer))
+        const vcDisco = await response.json()
         const issueEndpoint = vcDisco.issuerService
 
         const issuanceRequest = {

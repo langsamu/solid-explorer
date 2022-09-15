@@ -1,5 +1,5 @@
 import {HttpHeader, HttpMethod, Mime, Oidc, Uma} from "../packages/common/Vocabulary.js"
-import {bearer, fetchJson} from "../packages/common/Utils.js"
+import {bearer} from "../packages/common/Utils.js"
 import {Cache} from "../packages/common/Cache.js"
 
 export class UmaClient {
@@ -14,7 +14,7 @@ export class UmaClient {
     async exchangeTicket(ticket, idToken) {
         const umaDiscovery = await this.discover()
 
-        const umaToken = await fetchJson(umaDiscovery.token_endpoint, {
+        const response = await fetch(umaDiscovery.token_endpoint, {
             method: HttpMethod.Post,
             headers: {
                 [HttpHeader.ContentType]: Mime.Form,
@@ -27,6 +27,7 @@ export class UmaClient {
                 claim_token_format: Oidc.IdToken
             })
         })
+        const umaToken = await response.json()
 
         return umaToken.access_token
     }
@@ -61,9 +62,10 @@ export class UmaClient {
 
     async discover() {
         if (!this.#metadataCache.has(this.#authorizationServer)) {
-            const response = await fetchJson(new URL(Uma.Discovery, this.#authorizationServer))
+            const response = await fetch(new URL(Uma.Discovery, this.#authorizationServer))
+            const json = await response.json()
 
-            this.#metadataCache.set(this.#authorizationServer, response)
+            this.#metadataCache.set(this.#authorizationServer, json)
         }
 
         return this.#metadataCache.get(this.#authorizationServer)
