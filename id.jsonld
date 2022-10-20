@@ -4,7 +4,7 @@
 
   "client_id": "https://langsamu.github.io/solid-explorer/id.jsonld",
   "logo_uri": "https://langsamu.github.io/solid-explorer/logo.svg",
-  "post_logout_redirect_uris": ["https://langsamu.github.io/solid-explorer/"],
+  "token_endpoint_auth_method": "none",
   "redirect_uris": ["https://langsamu.github.io/solid-explorer/authentication.html"],
 
   "scope": "openid webid",
