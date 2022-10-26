@@ -1,5 +1,5 @@
-import "https://unpkg.com/n3@1.16.2/browser/n3.min.js"
-import "https://unpkg.com/jsonld@5.2.0/dist/jsonld.esm.min.js"
+import "../packages/unpkg.com/n3@1.16.2/browser/n3.min.js"
+import "../packages/unpkg.com/jsonld@8.1.0/dist/jsonld.esm.min.js"
 import {UmaClient} from "./UmaClient.js"
 import {HttpHeader, HttpMethod, Ldp, Mime, Solid} from "../packages/common/Vocabulary.js"
 import {bearer, toTriples} from "../packages/common/Utils.js"

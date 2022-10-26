@@ -1,7 +1,7 @@
 import {HttpHeader, Mime, Pim, Solid} from "../packages/common/Vocabulary.js"
 import {toTriples} from "../packages/common/Utils.js"
 import {Cache} from "../packages/common/Cache.js"
-import "https://unpkg.com/jsonld@5.2.0/dist/jsonld.esm.min.js"
+import "../packages/unpkg.com/jsonld@8.1.0/dist/jsonld.esm.min.js"
 
 export class WebIdClient {
     static #profileCache = new Cache("webid.profile.cache")
