@@ -6,6 +6,9 @@ import {SolidClient} from "../SolidClient.js"
 import {Ldp, Mime} from "../../packages/common/Vocabulary.js"
 import {ResourceUri} from "../ResourceUri.js"
 import {OidcCredentialManager} from "../../packages/oidc/OidcCredentialManager.js"
+import {ReactiveAuthenticationClient} from "../ReactiveAuthenticationClient.js"
+import {UmaTokenProvider} from "../UmaTokenProvider.js"
+import {OidcTokenProvider} from "../../packages/oidc/OidcTokenProvider.js"
 
 class AppElement extends HTMLBodyElement {
     #oidc
@@ -14,11 +17,13 @@ class AppElement extends HTMLBodyElement {
     #fileContextDialog
     #grantRequestDialog
     #grantResponseDialog
+    #solid
 
     constructor() {
         super()
 
         this.#oidc = new OidcCredentialManager
+        this.#solid = new SolidClient(new ReactiveAuthenticationClient([new UmaTokenProvider(this.#oidc), new OidcTokenProvider(this.#oidc)]))
     }
 
     connectedCallback() {
@@ -50,7 +55,7 @@ class AppElement extends HTMLBodyElement {
             this.#fileContextDialog = document.createElement("dialog", {is: "solid-context-dialog"})
             this.#fileContextDialog.dataset.title = "App operations"
             this.#fileContextDialog.addItem("openNew", "Open new window")
-            this.#fileContextDialog.addItem("getSolidResourceUriFromWebIdButton", "Get resourceuri from webid")
+            this.#fileContextDialog.addItem("getSolidResourceUriFromWebIdButton", "Get resource URI from WebID")
             this.#fileContextDialog.addItem("clearCredentials", "Clear credentials")
             document.body.appendChild(this.#fileContextDialog)
 
@@ -115,25 +120,15 @@ class AppElement extends HTMLBodyElement {
     async #getSolidResourceUriFromWebId() {
         const storage = await this.#oidc.getStorageFromWebId()
 
-        const credentials = await this.#oidc.getCredentials()
-        if (!credentials) {
-            return
-        }
-
-        const rootContainerUri = await SolidClient.getRootContainer(storage, credentials.id_token)
-        const resourceUri = new ResourceUri(storage, undefined, rootContainerUri)
-        this.#addressBar.resourceUri = resourceUri
+        const rootContainerUri = await this.#solid.getRootContainer(storage)
+        this.#addressBar.resourceUri = new ResourceUri(storage, undefined, rootContainerUri)
         this.#addressBar.focus()
     }
 
     async #onHashChange(e) {
         const resourceUriString = decodeURIComponent(new URL(e.newURL).hash.substring(1))
-        const credentials = await this.#oidc.getCredentials()
-        if (!credentials) {
-            return
-        }
 
-        const rootContainerUri = await SolidClient.getRootContainer(resourceUriString, credentials.id_token)
+        const rootContainerUri = await this.#solid.getRootContainer(resourceUriString)
         const resourceUri = new ResourceUri(resourceUriString, undefined, rootContainerUri)
 
         this.#tree.resourceUri = resourceUri.root
@@ -168,13 +163,7 @@ class AppElement extends HTMLBodyElement {
     }
 
     async #onDeleteResource(e) {
-        const credentials = await this.#oidc.getCredentials()
-        if (!credentials) {
-            return
-        }
-
-        const resource = await SolidClient.deleteResource(e.detail.resourceUri, credentials.id_token)
-        e.detail.resolve(resource)
+        e.detail.resolve(await this.#solid.deleteResource(e.detail.resourceUri))
     }
 
     async #onResourceContextMenu(e) {
@@ -231,12 +220,8 @@ class AppElement extends HTMLBodyElement {
 
                 if (newContainerName) {
                     const clean = encodeURIComponent(newContainerName)
-                    const credentials = await this.#oidc.getCredentials()
-                    if (!credentials) {
-                        return
-                    }
 
-                    await SolidClient.postResource(e.detail.resourceUri, Ldp.BasicContainer, Mime.Turtle, clean, credentials.id_token)
+                    await this.#solid.postResource(e.detail.resourceUri, Ldp.BasicContainer, Mime.Turtle, clean)
                     this.#container.refresh()
                 }
 
@@ -292,33 +277,15 @@ class AppElement extends HTMLBodyElement {
 
 
     async #onNeedChildren(e) {
-        const credentials = await this.#oidc.getCredentials()
-        if (!credentials) {
-            return
-        }
-
-        const children = await SolidClient.getChildren(e.detail.resourceUri, credentials.id_token)
-        e.detail.resolve(children)
+        e.detail.resolve(await this.#solid.getChildren(e.detail.resourceUri))
     }
 
     async #onNeedResource(e) {
-        const credentials = await this.#oidc.getCredentials()
-        if (!credentials) {
-            return
-        }
-
-        const resource = await SolidClient.getResource(e.detail.resourceUri, credentials.id_token, e.detail.signal)
-        e.detail.resolve(resource)
+        e.detail.resolve(await this.#solid.getResource(e.detail.resourceUri))
     }
 
     async #onNeedRoot(e) {
-        const credentials = await this.#oidc.getCredentials()
-        if (!credentials) {
-            return
-        }
-
-        const resource = await SolidClient.getRootContainer(e.detail.resourceUri, credentials.id_token, e.detail.signal)
-        e.detail.resolve(resource)
+        e.detail.resolve(await this.#solid.getRootContainer(e.detail.resourceUri))
     }
 
 
@@ -334,14 +301,8 @@ class AppElement extends HTMLBodyElement {
     }
 
     async #upload(resourceUri, sourceType, contentType, file) {
-        const credentials = await this.#oidc.getCredentials()
-        if (!credentials) {
-            return
-        }
-
-
         try {
-            await SolidClient.putResource(resourceUri, sourceType, contentType, file, credentials.id_token)
+            await this.#solid.putResource(resourceUri, sourceType, contentType, file)
         } catch (e) {
         }
     }
@@ -356,12 +317,7 @@ class AppElement extends HTMLBodyElement {
     }
 
     async #deleteWithoutConfirmation(resourceUri) {
-        const credentials = await this.#oidc.getCredentials()
-        if (!credentials) {
-            return
-        }
-
-        await SolidClient.deleteResource(resourceUri, credentials.id_token)
+        await this.#solid.deleteResource(resourceUri)
     }
 
     async #deleteRecursive(resourceUri) {
@@ -369,26 +325,17 @@ class AppElement extends HTMLBodyElement {
             return
         }
 
-        const credentials = await this.#oidc.getCredentials()
-        if (!credentials) {
-            return
-        }
-
-        const resourcesToDelete = await SolidClient.getDescendantsDepthFirst(resourceUri, credentials.id_token)
+        const resourcesToDelete = await this.#solid.getDescendantsDepthFirst(resourceUri)
 
         for (const resource of resourcesToDelete) {
             await this.#deleteWithoutConfirmation(resource)
         }
+
         await this.#container.refresh()
     }
 
     async #open(resourceUri) {
-        const credentials = await this.#oidc.getCredentials()
-        if (!credentials) {
-            return
-        }
-
-        const resourceResponse = await SolidClient.getResource(resourceUri, credentials.id_token)
+        const resourceResponse = await this.#solid.getResource(resourceUri)
 
         if (!resourceResponse.ok) {
             await document.getElementById("notFoundDialog").getModalValue()
@@ -403,12 +350,7 @@ class AppElement extends HTMLBodyElement {
     }
 
     async #download(resourceUri) {
-        const credentials = await this.#oidc.getCredentials()
-        if (!credentials) {
-            return
-        }
-
-        const resourceResponse = await SolidClient.getResource(resourceUri, credentials.id_token)
+        const resourceResponse = await this.#solid.getResource(resourceUri)
 
         if (!resourceResponse.ok) {
             await document.getElementById("notFoundDialog").getModalValue()
@@ -448,8 +390,7 @@ class AppElement extends HTMLBodyElement {
             return
         }
 
-        const credentials = await this.#oidc.getCredentials()
-        const accessGrantUri = await SolidClient.grantAccess(resourceUri, grantRequestModalResponse.webid, grantRequestModalResponse.modes, credentials.id_token)
+        const accessGrantUri = await this.#solid.grantAccess(resourceUri, grantRequestModalResponse.webid, grantRequestModalResponse.modes)
         if (!accessGrantUri) {
             return
         }

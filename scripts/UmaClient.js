@@ -1,5 +1,4 @@
 import {HttpHeader, HttpMethod, Mime, Oidc, Uma} from "../packages/common/Vocabulary.js"
-import {bearer} from "../packages/common/Utils.js"
 import {Cache} from "../packages/common/Cache.js"
 
 export class UmaClient {
@@ -30,21 +29,6 @@ export class UmaClient {
         const umaToken = await response.json()
 
         return umaToken.access_token
-    }
-
-    static async fetch(idToken, input, init) {
-        const [response, umaServer, umaTicket] = await UmaClient.parseUmaChallenge(input, init)
-        if (!umaServer) {
-            return response
-        }
-
-        const uma = new UmaClient(umaServer)
-
-        const umaAccessToken = await uma.exchangeTicket(umaTicket, idToken)
-        const newHeaders = Object.assign({}, init?.headers ?? {}, {[HttpHeader.Authorization]: bearer(umaAccessToken)})
-        const newInit = Object.assign({}, init ?? {}, {headers: newHeaders})
-
-        return await fetch(input, newInit)
     }
 
     static async parseUmaChallenge(input, init) {

@@ -6,43 +6,41 @@ import {bearer, toTriples} from "../packages/common/Utils.js"
 import {ResourceUri} from "./ResourceUri.js"
 
 export class SolidClient {
-    static async getAcrUri(resourceUri, idToken) {
-        const umaFetch = UmaClient.fetch.bind(undefined, idToken)
-        const resourceResponse = await umaFetch(resourceUri, {cache: "no-store", method: HttpMethod.Head})
-        const acrUri = resourceResponse.headers.get(HttpHeader.Link).match(Solid.AclLinkHeaderParser)[0]
+    /** @type {ReactiveAuthenticationClient} */
+    #authenticationClient
 
-        return acrUri
+    constructor(authenticationClient) {
+        this.#authenticationClient = authenticationClient;
     }
 
-    static async getResource(resourceUri, idToken, abortSignal) {
-        const umaFetch = UmaClient.fetch.bind(undefined, idToken)
+    async getAcrUri(resourceUri) {
+        const response = await this.#authenticationClient.fetch(resourceUri, {
+            cache: "no-store",
+            method: HttpMethod.Head
+        })
+
+        return response.headers.get(HttpHeader.Link).match(Solid.AclLinkHeaderParser)[0]
+    }
+
+    async getResource(resourceUri) {
         const init = {
             cache: "no-store",
             method: HttpMethod.Get
         }
 
-        if (abortSignal) {
-            init.signal = abortSignal
-        }
-
-        const resourceResponse = await umaFetch(resourceUri, init)
-
-        return resourceResponse
+        return await this.#authenticationClient.fetch(resourceUri, init)
     }
 
-    static async deleteResource(resourceUri, idToken) {
-        const umaFetch = UmaClient.fetch.bind(undefined, idToken)
+    async deleteResource(resourceUri) {
         const init = {
             cache: "no-store",
             method: HttpMethod.Delete
         }
 
-        const resourceResponse = await umaFetch(resourceUri, init)
-
-        return resourceResponse
+        return await this.#authenticationClient.fetch(resourceUri, init)
     }
 
-    static async getChildren(resourceUri, idToken, abortSignal) {
+    async getChildren(resourceUri) {
         if (!(resourceUri instanceof ResourceUri)) {
             resourceUri = new ResourceUri(resourceUri)
         }
@@ -51,7 +49,6 @@ export class SolidClient {
             return []
         }
 
-        const umaFetch = UmaClient.fetch.bind(undefined, idToken)
         const init = {
             cache: "no-store",
             method: HttpMethod.Get,
@@ -60,11 +57,7 @@ export class SolidClient {
             }
         }
 
-        if (abortSignal) {
-            init.signal = abortSignal
-        }
-
-        const resourceResponse = await umaFetch(resourceUri, init)
+        const resourceResponse = await this.#authenticationClient.fetch(resourceUri, init)
 
         const resourceJson = await resourceResponse.json()
         const triples = toTriples(await jsonld.flatten(resourceJson))
@@ -76,7 +69,7 @@ export class SolidClient {
             .map(o => new ResourceUri(o, resourceUri, resourceUri.root))
     }
 
-    static async getDescendantsDepthFirst(resourceUri, idToken, abortSignal) {
+    async getDescendantsDepthFirst(resourceUri) {
         if (!resourceUri.isContainer) {
             return []
         }
@@ -85,7 +78,7 @@ export class SolidClient {
         const traverse = async (resource) => {
             descendants.unshift(resource)
 
-            for (const child of await this.getChildren(resource, idToken, abortSignal)) {
+            for (const child of await this.getChildren(resource)) {
                 await traverse(child)
             }
         }
@@ -95,18 +88,13 @@ export class SolidClient {
         return descendants
     }
 
-    static async getRootContainer(resourceUri, idToken, abortSignal) {
-        const umaFetch = UmaClient.fetch.bind(undefined, idToken)
+    async getRootContainer(resourceUri) {
         const init = {
             cache: "no-store",
             method: HttpMethod.Head
         }
 
-        if (abortSignal) {
-            init.signal = abortSignal
-        }
-
-        const resourceResponse = await umaFetch(resourceUri, init)
+        const resourceResponse = await this.#authenticationClient.fetch(resourceUri, init)
         const links = resourceResponse.headers.get(HttpHeader.Link)
 
         if (links.includes('<http://www.w3.org/ns/pim/space#Storage>; rel="type"')) {
@@ -120,25 +108,20 @@ export class SolidClient {
         }
     }
 
-    async isRootContainer(resourceUri, idToken, abortSignal) {
-        const umaFetch = UmaClient.fetch.bind(undefined, idToken)
+    async isRootContainer(resourceUri) {
         const init = {
             cache: "no-store",
             method: HttpMethod.Head
         }
 
-        if (abortSignal) {
-            init.signal = abortSignal
-        }
-
-        const resourceResponse = await umaFetch(resourceUri, init)
+        const resourceResponse = await this.#authenticationClient.fetch(resourceUri, init)
         const links = resourceResponse.headers.get(HttpHeader.Link)
 
         return links.includes('<http://www.w3.org/ns/pim/space#Storage>; rel="type"')
     }
 
-    static async getAcr(acrUri, accessToken) {
-        const acrResponse = await fetch(acrUri, {
+    async getAcr(acrUri, accessToken) {
+        const acrResponse = await this.#authenticationClient.fetch(acrUri, {
             cache: "no-store",
             headers: {
                 [HttpHeader.Accept]: Mime.Turtle,
@@ -147,13 +130,10 @@ export class SolidClient {
         })
         const acrBody = await acrResponse.text()
 
-        const dataset = new N3.Store()
-        dataset.addQuads(new N3.Parser().parse(acrBody))
-
-        return dataset
+        return new N3.Store(new N3.Parser().parse(acrBody))
     }
 
-    static async setAcr(acrUri, dataset, accessToken) {
+    async setAcr(acrUri, dataset, accessToken) {
         const writer = new N3.Writer()
         dataset.forEach(writer.addQuad.bind(writer))
 
@@ -165,7 +145,7 @@ export class SolidClient {
             }
         }))
 
-        await fetch(acrUri, {
+        await this.#authenticationClient.fetch(acrUri, {
             cache: "no-store",
             method: HttpMethod.Put,
             headers: {
@@ -176,8 +156,7 @@ export class SolidClient {
         })
     }
 
-    static async putResource(resourceUri, sourceType, contentType, body, idToken) {
-        const umaFetch = UmaClient.fetch.bind(undefined, idToken)
+    async putResource(resourceUri, sourceType, contentType, body) {
         const init = {
             cache: "no-store",
             method: HttpMethod.Put,
@@ -188,11 +167,10 @@ export class SolidClient {
             body
         }
 
-        return await umaFetch(resourceUri, init)
+        return await this.#authenticationClient.fetch(resourceUri, init)
     }
 
-    static async postResource(resourceUri, sourceType, contentType, slug, idToken) {
-        const umaFetch = UmaClient.fetch.bind(undefined, idToken)
+    async postResource(resourceUri, sourceType, contentType, slug) {
         const init = {
             cache: "no-store",
             method: HttpMethod.Post,
@@ -203,10 +181,10 @@ export class SolidClient {
             }
         }
 
-        return await umaFetch(resourceUri, init)
+        return await this.#authenticationClient.fetch(resourceUri, init)
     }
 
-    static async grantAccess(resourceUri, isProvidedTo, mode, idToken) {
+    async grantAccess(resourceUri, isProvidedTo, mode) {
         const [, umaServer] = await UmaClient.parseUmaChallenge(resourceUri, {method: HttpMethod.Head})
         if (!umaServer) {
             console.log("UMA not supported")
@@ -239,10 +217,9 @@ export class SolidClient {
                 }
             }
         }
-        const accessGrantResponse = await fetch(issueEndpoint, {
+        const accessGrantResponse = await this.#authenticationClient.fetch(issueEndpoint, {
             method: HttpMethod.Post,
             headers: {
-                [HttpHeader.Authorization]: bearer(idToken),
                 [HttpHeader.ContentType]: Mime.Json
             },
             body: JSON.stringify(issuanceRequest)

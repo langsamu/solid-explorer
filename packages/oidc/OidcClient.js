@@ -28,7 +28,8 @@ export class OidcClient {
                 },
                 body: JSON.stringify({
                     redirect_uris: [this.#redirectUri]
-                })
+                }),
+                redirect: "manual" // NSS responds with 201
             })
             const oidcRegistration = await response.json()
 
@@ -95,6 +96,10 @@ export class OidcClient {
 }
 
 function expiresIn(registration, expectedTtlMillis) {
+    if (registration.client_secret_expires_at === 0) { // NSS says this
+        return false
+    }
+
     const expiresAtMillis = registration.client_secret_expires_at * 1000
     const expiresAt = new Date(expiresAtMillis)
     const ttlMillis = expiresAt - Date.now()
