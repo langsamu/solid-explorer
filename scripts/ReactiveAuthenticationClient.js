@@ -1,6 +1,7 @@
 const AUTHORIZATION = "Authorization"
 const UNAUTHORIZED = 401;
 const WWW_AUTHENTICATE = "Www-Authenticate";
+const DEFAULT_AUTHENTICATION_MECHANISM = "Www-Bearer";
 
 export class ReactiveAuthenticationClient {
     /** @type {TokenProvider[]} tokenProviders */
@@ -49,10 +50,9 @@ export class ReactiveAuthenticationClient {
             return originalResponse
         }
 
-        const challenge = originalResponse.headers.get(WWW_AUTHENTICATE)
-        if (!challenge) {
-            return originalResponse
-        }
+        // Extract challenge from unauthorized response.
+        // In case there isn't one (or this header is not exposed to CORS) assume bearer authentication.
+        const challenge = originalResponse.headers.get(WWW_AUTHENTICATE) ?? DEFAULT_AUTHENTICATION_MECHANISM
 
         this.#challengeCache.set(requestUri, challenge)
         const token = await this.#tokenProviders.find(provider => provider.matches(challenge)).getToken(challenge)
