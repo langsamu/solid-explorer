@@ -1,5 +1,6 @@
 import "../dialog/InputDialog.js"
 import "../dialog/SelectDialog.js"
+import "../dialog/OkDialog.js"
 import "./AuthenticationDialog.js"
 
 import {WebIdClient} from "../../scripts/WebIdClient.js"
@@ -10,6 +11,7 @@ class SolidOidcUi extends HTMLElement {
     #idpSelectDialog
     #authenticationDialog
     #storageSelectDialog
+    #storageNotFoundInWebIdDialog
 
     connectedCallback() {
         this.#idpUriDialog = this.ownerDocument.createElement("dialog", {is: "solid-input-dialog"})
@@ -60,6 +62,13 @@ The window will then close and the operation will continue.<br>
 
         this.#authenticationDialog = this.ownerDocument.createElement("dialog", {is: "solid-authentication-dialog"})
         this.appendChild(this.#authenticationDialog)
+
+        this.#storageNotFoundInWebIdDialog = this.ownerDocument.createElement("dialog", {is: "solid-ok-dialog"})
+        this.#storageNotFoundInWebIdDialog.dataset.title = "Storage missing from WebID"
+        const storageNotFoundInWebIdDiv = this.ownerDocument.createElement("div")
+        storageNotFoundInWebIdDiv.innerText = "A storage URI was not found in the WebID profile."
+        this.#storageNotFoundInWebIdDialog.contents.appendChild(storageNotFoundInWebIdDiv)
+        this.appendChild(this.#storageNotFoundInWebIdDialog)
     }
 
     async getIdpUri() {
@@ -81,16 +90,21 @@ The window will then close and the operation will continue.<br>
             return
         }
 
+        if (profile.storages.length === 0) {
+            this.#storageNotFoundInWebIdDialog.showModal()
+            return
+        }
+
         if (profile.storages.length === 1) {
             return profile.storages[0]
-        } else {
-            const storage = await this.#storageSelectDialog.getModalValue(profile.storages)
-            if (!storage) {
-                return
-            }
-
-            return storage
         }
+
+        const storage = await this.#storageSelectDialog.getModalValue(profile.storages)
+        if (!storage) {
+            return
+        }
+
+        return storage
     }
 
     needInteraction(authenticationUrl) {
