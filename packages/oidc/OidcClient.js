@@ -1,6 +1,7 @@
 import {HttpHeader, HttpMethod, Mime, Oidc, Solid} from "../common/Vocabulary.js"
 import {Cache} from "../common/Cache.js"
 import {basic} from "../common/Utils.js"
+import {PKCE} from "./PKCE.js"
 
 export class OidcClient {
     static #registrationMinTtlMillis = 10 * 1000
@@ -9,12 +10,14 @@ export class OidcClient {
     #redirectUri
     #metadataCache
     #clientCache
+    #pkceVerifier
 
-    constructor(identityProvider, redirectUri) {
+    constructor(identityProvider, redirectUri, pkceVerifier) {
         this.#identityProvider = identityProvider
         this.#redirectUri = redirectUri
         this.#metadataCache = new Cache("oidc.metadata.cache")
         this.#clientCache = new Cache("oidc.client.cache")
+        this.#pkceVerifier = pkceVerifier
     }
 
     async register() {
@@ -54,6 +57,8 @@ export class OidcClient {
             response_type: Oidc.Code,
             client_id: clientId,
             redirect_uri: this.#redirectUri,
+            code_challenge: await PKCE.createChallenge(this.#pkceVerifier),
+            code_challenge_method: "S256",
         })
 
         const authorizationUrl = new URL(`?${authorizationRequest}`, disco.authorization_endpoint)
@@ -69,7 +74,8 @@ export class OidcClient {
                 grant_type: Oidc.AuthorizationCode,
                 client_id: clientId,
                 code,
-                redirect_uri: this.#redirectUri
+                redirect_uri: this.#redirectUri,
+                code_verifier: this.#pkceVerifier,
             })
         }
 

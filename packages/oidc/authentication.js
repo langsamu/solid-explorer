@@ -1,5 +1,6 @@
 import {Oidc} from "../common/Vocabulary.js"
 import {OidcClient} from "./OidcClient.js"
+import {PKCE} from "./PKCE.js"
 
 addEventListener("load", onLoad)
 
@@ -9,7 +10,7 @@ async function onLoad() {
     const keyParam = getFromQueryOrSession("key", query)
 
     const redirectUri = new URL(location.pathname, location.origin)
-    const oidcClient = new OidcClient(idpParam, redirectUri)
+    const oidcClient = new OidcClient(idpParam, redirectUri, getPkceVerifier())
 
     // Use public client ID without secret by default but register client dynamically if on localhost.
     let client_id = new URL("./id.jsonld", location), client_secret
@@ -56,4 +57,12 @@ function getFromQueryOrSession(name, query) {
     }
 
     return sessionStorage.getItem(name)
+}
+
+function getPkceVerifier() {
+    if (!sessionStorage.getItem("pkceVerifier")) {
+        sessionStorage.setItem("pkceVerifier", PKCE.createVerifier())
+    }
+
+    return sessionStorage.getItem("pkceVerifier")
 }
