@@ -2,6 +2,7 @@ import {HttpHeader, HttpMethod, Mime, Oidc, Solid} from "../common/Vocabulary.js
 import {Cache} from "../common/Cache.js"
 import {basic} from "../common/Utils.js"
 import {PKCE} from "./PKCE.js"
+import {DPoP} from "./DPoP.js"
 
 export class OidcClient {
     static #registrationMinTtlMillis = 10 * 1000
@@ -65,7 +66,7 @@ export class OidcClient {
         location.assign(authorizationUrl)
     }
 
-    async exchangeToken(code, clientId, clientSecret) {
+    async exchangeToken(code, clientId, clientSecret, dpopKey) {
         const disco = await this.#discover()
 
         const init = {
@@ -76,17 +77,18 @@ export class OidcClient {
                 code,
                 redirect_uri: this.#redirectUri,
                 code_verifier: this.#pkceVerifier,
-            })
+            }),
+            headers: new Headers
         }
 
         if (clientSecret) {
-            init.headers = {
-                [HttpHeader.Authorization]: basic(clientId, clientSecret)
-            }
+            init.headers.set(HttpHeader.Authorization, basic(clientId, clientSecret))
         }
 
+        init.headers.set("DPoP", await DPoP.proof(disco.token_endpoint, HttpMethod.Post, dpopKey))
+
         const response = await fetch(disco.token_endpoint, init)
-        return await response.json()
+        return response.json()
     }
 
     async #discover() {

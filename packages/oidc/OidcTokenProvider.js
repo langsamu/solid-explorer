@@ -1,6 +1,7 @@
 import {TokenProvider} from "../common/TokenProvider.js"
+import {DPopBoundAccessToken} from "../../scripts/DPopBoundAccessToken.js"
 
-const oidcMatcher = /Bearer/;
+const oidcMatcher = /Bearer/
 
 export class OidcTokenProvider extends TokenProvider {
     #oidc
@@ -11,21 +12,15 @@ export class OidcTokenProvider extends TokenProvider {
         this.#oidc = oidc;
     }
 
-    /**
-     * @param challenge {String}
-     * @return {boolean}
-     */
+    /** @inheritDoc */
     matches(challenge) {
         return oidcMatcher.test(challenge)
     }
 
-    /**
-     * @param challenge {string}
-     * @return {Promise<string>}
-     */
+    /** @inheritDoc */
     async getToken(challenge) {
         const credentials = await this.#oidc.getCredentials()
 
-        return credentials.id_token
+        return new DPopBoundAccessToken(credentials.tokenResponse.access_token, credentials.dpopKey)
     }
 }

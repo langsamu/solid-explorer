@@ -1,5 +1,7 @@
 import {HttpHeader, HttpMethod, Mime, Oidc, Uma} from "../packages/common/Vocabulary.js"
 import {Cache} from "../packages/common/Cache.js"
+import {DPoP} from "../packages/oidc/DPoP.js"
+import {DPopBoundAccessToken} from "./DPopBoundAccessToken.js"
 
 export class UmaClient {
     #authorizationServer
@@ -10,14 +12,21 @@ export class UmaClient {
         this.#metadataCache = new Cache("uma.metadata.cache")
     }
 
-    async exchangeTicket(ticket, idToken) {
+    /**
+     * @param {string} ticket
+     * @param {string} idToken
+     * @param {CryptoKeyPair} dpopKey
+     * @return {Promise<DPopBoundAccessToken>}
+     */
+    async exchangeTicket(ticket, idToken, dpopKey) {
         const umaDiscovery = await this.discover()
 
         const response = await fetch(umaDiscovery.token_endpoint, {
             method: HttpMethod.Post,
             headers: {
                 [HttpHeader.ContentType]: Mime.Form,
-                [HttpHeader.Accept]: Mime.Json
+                [HttpHeader.Accept]: Mime.Json,
+                "DPoP": await DPoP.proof(umaDiscovery.token_endpoint, HttpMethod.Post, dpopKey)
             },
             body: new URLSearchParams({
                 ticket,
@@ -28,7 +37,7 @@ export class UmaClient {
         })
         const umaToken = await response.json()
 
-        return umaToken.access_token
+        return new DPopBoundAccessToken(umaToken.access_token, dpopKey)
     }
 
     static async parseUmaChallenge(input, init) {

@@ -4,6 +4,7 @@ import {UmaClient} from "./UmaClient.js"
 const umaMatcher = /UMA as_uri="([^"]+)", ticket="([^"]+)"/;
 
 export class UmaTokenProvider extends TokenProvider {
+    /** @type {Map<String, DPopBoundAccessToken>} */
     #cache = new Map
     #oidc
 
@@ -13,22 +14,16 @@ export class UmaTokenProvider extends TokenProvider {
         this.#oidc = oidc;
     }
 
-    /**
-     * @param challenge {String}
-     * @return {boolean}
-     */
+    /** @inheritDoc */
     matches(challenge) {
         return umaMatcher.test(challenge)
     }
 
-    /**
-     * @param challenge {string}
-     * @return {Promise<string>}
-     */
+    /** @inheritDoc */
     async getToken(challenge) {
         if (this.#cache.has(challenge)) {
             const umaToken = this.#cache.get(challenge);
-            if (expired(umaToken)) {
+            if (expired(umaToken.accessToken)) {
                 return null
             }
 
@@ -38,7 +33,7 @@ export class UmaTokenProvider extends TokenProvider {
         const [, asUri, ticket] = umaMatcher.exec(challenge)
         const umaClient = new UmaClient(asUri)
         const credentials = await this.#oidc.getCredentials()
-        const umaToken = await umaClient.exchangeTicket(ticket, credentials.id_token)
+        const umaToken = await umaClient.exchangeTicket(ticket, credentials.tokenResponse.id_token, credentials.dpopKey)
         this.#cache.set(challenge, umaToken)
 
         return umaToken

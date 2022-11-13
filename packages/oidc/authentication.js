@@ -26,8 +26,19 @@ async function onLoad() {
 }
 
 async function processOidcCode(oidcClient, code, client_id, client_secret, keyParam) {
-    const response = await oidcClient.exchangeToken(code, client_id, client_secret)
-    const responseJson = JSON.stringify(response)
+    const dpopKey = await crypto.subtle.generateKey({name: "ECDSA", namedCurve: "P-256"}, true, ["sign"])
+
+    const response = await oidcClient.exchangeToken(code, client_id, client_secret, dpopKey)
+
+    const messageBody = {
+        tokenResponse: response,
+        dpopKey: {
+            publicKey: await crypto.subtle.exportKey("jwk", dpopKey.publicKey),
+            privateKey: await crypto.subtle.exportKey("jwk", dpopKey.privateKey)
+        }
+    }
+
+    const responseJson = JSON.stringify(messageBody)
     const responseBuffer = new TextEncoder().encode(responseJson)
 
     const hostAlgorithm = {name: "RSA-OAEP", hash: {name: "SHA-256"}}

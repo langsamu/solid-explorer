@@ -5,7 +5,7 @@ export class OidcCredentialManager {
     #gettingCredentials
     #ui
 
-    addUi(container){
+    addUi(container) {
         this.#ui = container.appendChild(container.ownerDocument.createElement("solid-oidc-ui"))
     }
 
@@ -18,7 +18,7 @@ export class OidcCredentialManager {
         // See if we have cached credentials
         if (this.#credentials) {
             // Assuming ID token and access token have same expiry
-            const expiry = JSON.parse(atob(this.#credentials.id_token.split(".")[1])).exp * 1000
+            const expiry = JSON.parse(atob(this.#credentials.tokenResponse.id_token.split(".")[1])).exp * 1000
 
             // Make sure there's at least ten seconds to go until token expires
             if (new Date(expiry) - Date.now() > 10000) {
@@ -51,6 +51,17 @@ export class OidcCredentialManager {
         const key = btoa(JSON.stringify(await crypto.subtle.exportKey("jwk", keyPair.publicKey)))
         const authenticationUrl = `./authentication.html?${new URLSearchParams({idp, key})}`;
         const credentials = await this.#getOidcCredentialsFromAuthNWindow(authenticationUrl, keyPair.privateKey)
+
+        credentials.dpopKey = {
+            publicKey: await crypto.subtle.importKey("jwk", credentials.dpopKey.publicKey, {
+                name: "ECDSA",
+                namedCurve: "P-256"
+            }, true, []),
+            privateKey: await crypto.subtle.importKey("jwk", credentials.dpopKey.privateKey, {
+                name: "ECDSA",
+                namedCurve: "P-256"
+            }, false, ["sign"])
+        }
 
         return releaseLock() || (this.#credentials = credentials)
     }
