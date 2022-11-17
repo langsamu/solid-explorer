@@ -45,7 +45,7 @@ export class ReactiveAuthenticationClient {
             }
         }
 
-        const originalResponse = await this.#underlyingFetch.call(undefined, request)
+        const originalResponse = await this.#underlyingFetch.call(undefined, request.clone())
         if (originalResponse.status !== UNAUTHORIZED) {
             return originalResponse
         }
