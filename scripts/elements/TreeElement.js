@@ -5,7 +5,7 @@ export class TreeElement extends HTMLDetailsElement {
     constructor() {
         super()
 
-        addEventListener("resourceClick", this.#onResourceClick.bind(this), true)
+        //addEventListener("resourceClick", this.#onResourceClick.bind(this), true)
         this.addEventListener("toggle", this.#onToggle.bind(this))
         this.#summarySpan.addEventListener("click", this.#onSummarySpanClick.bind(this))
         this.#summarySpan.addEventListener("dblclick", this.#onSummarySpanDoubleClick.bind(this))
