@@ -61,7 +61,7 @@ export class SolidClient {
 
         const resourceText = await resourceResponse.text()
         const dataset = new N3.Store(new N3.Parser({baseIRI: resourceUri.toString()}).parse(resourceText))
-        return new ContainerGraph(dataset, resourceUri).resource.contains
+        return new ContainerGraph(dataset, resourceUri).resource?.contains || []
     }
 
     async getDescendantsDepthFirst(resourceUri) {
