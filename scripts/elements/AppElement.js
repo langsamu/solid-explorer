@@ -28,101 +28,120 @@ class AppElement extends HTMLBodyElement {
 
     connectedCallback() {
         this.#oidc.addUi(this)
-
-        addEventListener("load", async () => {
-            this.#containerContextDialog = document.createElement("dialog", {is: "solid-context-dialog"})
-            this.#containerContextDialog.dataset.title = "Container operations"
-            this.#containerContextDialog.addItem("open", "Open")
-            this.#containerContextDialog.addItem("openNew", "Open in new window")
-            this.#containerContextDialog.addItem("download", "Download RDF")
-            this.#containerContextDialog.addItem("delete", "Delete")
-            this.#containerContextDialog.addItem("deleteRecursive", "Delete recursive")
-            this.#containerContextDialog.addItem("newContainer", "New container")
-            this.#containerContextDialog.addItem("upload", "Upload")
-            this.#containerContextDialog.addItem("uploadVerbose", "Upload…")
-            this.#containerContextDialog.addItem("grantAccess", "Grant access")
-            document.body.appendChild(this.#containerContextDialog)
-
-            this.#resourceContextDialog = document.createElement("dialog", {is: "solid-context-dialog"})
-            this.#resourceContextDialog.dataset.title = "Resource operations"
-            this.#resourceContextDialog.addItem("open", "Open")
-            this.#resourceContextDialog.addItem("openNew", "Open in new window")
-            this.#resourceContextDialog.addItem("download", "Download")
-            this.#resourceContextDialog.addItem("delete", "Delete")
-            this.#resourceContextDialog.addItem("grantAccess", "Grant access")
-            document.body.appendChild(this.#resourceContextDialog)
-
-            this.#fileContextDialog = document.createElement("dialog", {is: "solid-context-dialog"})
-            this.#fileContextDialog.dataset.title = "App operations"
-            this.#fileContextDialog.addItem("openNew", "Open new window")
-            this.#fileContextDialog.addItem("getSolidResourceUriFromWebIdButton", "Get resource URI from WebID")
-            this.#fileContextDialog.addItem("clearCredentials", "Clear credentials")
-            document.body.appendChild(this.#fileContextDialog)
-
-            document.getElementById("fileMenu").addEventListener("click", this.#onFileMenu.bind(this))
-
-            this.#grantRequestDialog = document.createElement("dialog", {is: "solid-grant-request-dialog"})
-            this.#grantRequestDialog.dataset.title = "Grant access"
-            document.body.appendChild(this.#grantRequestDialog)
-
-            this.#grantResponseDialog = document.createElement("dialog", {is: "solid-grant-response-dialog"})
-            this.#grantResponseDialog.dataset.title = "Access grant URI"
-            document.body.appendChild(this.#grantResponseDialog)
-
-            this.#addressBar.addEventListener("resourceUriEntered", this.#onResourceUriEntered.bind(this))
-            this.#tree.addEventListener("resourceClick", this.#onTreeResourceClick.bind(this))
-            this.#crumbTrail.addEventListener("resourceClick", this.#onCrumbTrailResourceClick.bind(this))
-            this.#container.addEventListener("resourceClick", this.#onContainerResourceClick.bind(this))
-            this.#container.addEventListener("resourceDoubleClick", this.#onContainerItemDoubleClick.bind(this))
-
-            this.#container.addEventListener("resourceContextMenu", this.#onResourceContextMenu.bind(this))
-            this.#tree.addEventListener("resourceContextMenu", this.#onResourceContextMenu.bind(this))
-
-            this.addEventListener("needChildren", this.#onNeedChildren.bind(this))
-            this.addEventListener("needResource", this.#onNeedResource.bind(this))
-            this.addEventListener("needRoot", this.#onNeedRoot.bind(this))
-            this.addEventListener("deleteResource", this.#onDeleteResource.bind(this))
-            this.addEventListener("paste", this.#onPaste.bind(this))
-
-            addEventListener("hashchange", this.#onHashChange.bind(this))
-
-            if (location.hash) {
-                window.dispatchEvent(new HashChangeEvent("hashchange", {newURL: location.href}))
-            }
-        })
+        this.#buildUi()
+        this.#wireHandlers()
     }
 
+    #buildUi() {
+        this.#containerContextDialog = this.ownerDocument.createElement("dialog", {is: "solid-context-dialog"})
+        this.#containerContextDialog.dataset.title = "Container operations"
+        this.#containerContextDialog.addItem("open", "Open")
+        this.#containerContextDialog.addItem("openNew", "Open in new window")
+        this.#containerContextDialog.addItem("download", "Download RDF")
+        this.#containerContextDialog.addItem("delete", "Delete")
+        this.#containerContextDialog.addItem("deleteRecursive", "Delete recursive")
+        this.#containerContextDialog.addItem("newContainer", "New container")
+        this.#containerContextDialog.addItem("upload", "Upload")
+        this.#containerContextDialog.addItem("uploadVerbose", "Upload…")
+        this.#containerContextDialog.addItem("grantAccess", "Grant access")
+        this.appendChild(this.#containerContextDialog)
+
+        this.#resourceContextDialog = this.ownerDocument.createElement("dialog", {is: "solid-context-dialog"})
+        this.#resourceContextDialog.dataset.title = "Resource operations"
+        this.#resourceContextDialog.addItem("open", "Open")
+        this.#resourceContextDialog.addItem("openNew", "Open in new window")
+        this.#resourceContextDialog.addItem("download", "Download")
+        this.#resourceContextDialog.addItem("delete", "Delete")
+        this.#resourceContextDialog.addItem("grantAccess", "Grant access")
+        this.appendChild(this.#resourceContextDialog)
+
+        this.#fileContextDialog = this.ownerDocument.createElement("dialog", {is: "solid-context-dialog"})
+        this.#fileContextDialog.dataset.title = "App operations"
+        this.#fileContextDialog.addItem("openNew", "Open new window")
+        this.#fileContextDialog.addItem("getSolidResourceUriFromWebIdButton", "Get resource URI from WebID")
+        this.#fileContextDialog.addItem("clearCredentials", "Clear credentials")
+        this.appendChild(this.#fileContextDialog)
+
+        this.#grantRequestDialog = this.ownerDocument.createElement("dialog", {is: "solid-grant-request-dialog"})
+        this.#grantRequestDialog.dataset.title = "Grant access"
+        this.appendChild(this.#grantRequestDialog)
+
+        this.#grantResponseDialog = this.ownerDocument.createElement("dialog", {is: "solid-grant-response-dialog"})
+        this.#grantResponseDialog.dataset.title = "Access grant URI"
+        this.appendChild(this.#grantResponseDialog)
+    }
+
+    #wireHandlers() {
+        this.#fileMenu.addEventListener("click", this.#onFileMenu.bind(this))
+        this.#addressBar.addEventListener("resourceUriEntered", this.#onResourceUriEntered.bind(this))
+        this.#tree.addEventListener("resourceClick", this.#onTreeResourceClick.bind(this))
+        this.#crumbTrail.addEventListener("resourceClick", this.#onCrumbTrailResourceClick.bind(this))
+        this.#container.addEventListener("resourceClick", this.#onContainerResourceClick.bind(this))
+        this.#container.addEventListener("resourceDoubleClick", this.#onContainerItemDoubleClick.bind(this))
+        this.#container.addEventListener("resourceContextMenu", this.#onResourceContextMenu.bind(this))
+        this.#tree.addEventListener("resourceContextMenu", this.#onResourceContextMenu.bind(this))
+
+        this.addEventListener("needChildren", this.#onNeedChildren.bind(this))
+        this.addEventListener("needResource", this.#onNeedResource.bind(this))
+        this.addEventListener("needRoot", this.#onNeedRoot.bind(this))
+        this.addEventListener("deleteResource", this.#onDeleteResource.bind(this))
+        this.addEventListener("paste", this.#onPaste.bind(this))
+
+        addEventListener("hashchange", this.#onHashChange.bind(this))
+        addEventListener("load", this.#onLoad.bind(this))
+    }
+
+
+    // region element accessors
+
     get #tree() {
-        return document.getElementById("tree")
+        return this.ownerDocument.getElementById("tree")
     }
 
     get #container() {
-        return document.getElementById("container")
+        return this.ownerDocument.getElementById("container")
     }
 
     get #preview() {
-        return document.getElementById("preview")
+        return this.ownerDocument.getElementById("preview")
     }
 
     get #addressBar() {
-        return document.querySelector("#addressBar form")
+        return this.querySelector("#addressBar form")
     }
 
     get #crumbTrail() {
-        return document.querySelector("ul[is=solid-crumb-trail]")
+        return this.querySelector("ul[is=solid-crumb-trail]")
     }
 
     get #confirmDialog() {
-        return document.getElementById("confirmDialog")
+        return this.ownerDocument.getElementById("confirmDialog")
     }
 
+    get #fileMenu() {
+        return this.ownerDocument.getElementById("fileMenu")
+    }
 
-    async #getSolidResourceUriFromWebId() {
-        const storage = await this.#oidc.getStorageFromWebId()
+    get #uploadDialog() {
+        return this.ownerDocument.getElementById("uploadDialog")
+    }
 
-        const rootContainerUri = await this.#solid.getRootContainer(storage)
-        this.#addressBar.resourceUri = new ResourceUri(storage, undefined, rootContainerUri)
-        this.#addressBar.focus()
+    get #newContainerDialog() {
+        return this.ownerDocument.getElementById("newContainerDialog")
+    }
+
+    get #notFoundDialog() {
+        return this.ownerDocument.getElementById("notFoundDialog")
+    }
+
+    // endregion
+
+    // region event handlers
+
+    async #onLoad() {
+        if (location.hash) {
+            dispatchEvent(new HashChangeEvent("hashchange", {newURL: location.href}))
+        }
     }
 
     async #onHashChange(e) {
@@ -192,7 +211,7 @@ class AppElement extends HTMLBodyElement {
                 break
 
             case "upload":
-                const upload = document.createElement("input")
+                const upload = this.ownerDocument.createElement("input")
                 upload.type = "file"
                 upload.multiple = true
 
@@ -205,7 +224,7 @@ class AppElement extends HTMLBodyElement {
                 break
 
             case "uploadVerbose":
-                const modalResponse = await document.getElementById("uploadDialog").getModalValue()
+                const modalResponse = await this.#uploadDialog.getModalValue()
 
                 if (modalResponse) {
                     const resourceUri = `${e.detail.resourceUri}${modalResponse.name}`
@@ -216,7 +235,7 @@ class AppElement extends HTMLBodyElement {
                 break
 
             case "newContainer":
-                const newContainerName = await document.getElementById("newContainerDialog").getModalValue()
+                const newContainerName = await this.#newContainerDialog.getModalValue()
 
                 if (newContainerName) {
                     const clean = encodeURIComponent(newContainerName)
@@ -275,7 +294,6 @@ class AppElement extends HTMLBodyElement {
         }
     }
 
-
     async #onNeedChildren(e) {
         e.detail.resolve(await this.#solid.getChildren(e.detail.resourceUri))
     }
@@ -288,6 +306,15 @@ class AppElement extends HTMLBodyElement {
         e.detail.resolve(await this.#solid.getRootContainer(e.detail.resourceUri))
     }
 
+    // endregion
+
+    async #getSolidResourceUriFromWebId() {
+        const storage = await this.#oidc.getStorageFromWebId()
+
+        const rootContainerUri = await this.#solid.getRootContainer(storage)
+        this.#addressBar.resourceUri = new ResourceUri(storage, undefined, rootContainerUri)
+        this.#addressBar.focus()
+    }
 
     async #uploadMultiple(containerUri, files) {
         for (const file of files) {
@@ -338,7 +365,7 @@ class AppElement extends HTMLBodyElement {
         const resourceResponse = await this.#solid.getResource(resourceUri)
 
         if (!resourceResponse.ok) {
-            await document.getElementById("notFoundDialog").getModalValue()
+            await this.#notFoundDialog.getModalValue()
             return
         }
 
@@ -353,13 +380,13 @@ class AppElement extends HTMLBodyElement {
         const resourceResponse = await this.#solid.getResource(resourceUri)
 
         if (!resourceResponse.ok) {
-            await document.getElementById("notFoundDialog").getModalValue()
+            await this.#notFoundDialog.getModalValue()
             return
         }
 
         const blob = await resourceResponse.blob()
         const blobUrl = URL.createObjectURL(blob)
-        const a = document.createElement("a")
+        const a = this.ownerDocument.createElement("a")
         a.href = blobUrl
         a.download = decodeURIComponent(resourceUri.name)
         a.click()
