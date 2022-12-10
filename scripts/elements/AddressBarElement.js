@@ -1,5 +1,3 @@
-import {ResourceUri} from "../ResourceUri.js"
-
 class AddressBarElement extends HTMLFormElement {
     /** @type {ResourceUri} */
     #resourceUri

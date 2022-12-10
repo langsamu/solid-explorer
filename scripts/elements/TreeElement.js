@@ -1,5 +1,3 @@
-import {ResourceUri} from "../ResourceUri.js"
-
 export class TreeElement extends HTMLDetailsElement {
     /** @type {ResourceUri} */
     #resourceUri
@@ -33,7 +31,7 @@ export class TreeElement extends HTMLDetailsElement {
     /** @param {ResourceUri} value */
     set resourceUri(value) {
         if (!value.isContainer) {
-            throw `Value is not a container: ${value}`
+            throw new Error(`Value is not a container: ${value}`)
         }
 
         this.#resourceUri = value

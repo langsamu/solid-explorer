@@ -20,7 +20,7 @@ export class ContainerViewElement extends HTMLDivElement {
 
     set resourceUri(value) {
         if (!value.isContainer) {
-            throw `Value is not a container: ${value}`
+            throw new Error(`Value is not a container: ${value}`)
         }
 
         this.#resourceUri = value

@@ -1,5 +1,3 @@
-import {ResourceUri} from "../ResourceUri.js"
-
 export class CrumbTrailElement extends HTMLUListElement {
     /** @type {ResourceUri} */
     #resourceUri

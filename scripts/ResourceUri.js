@@ -6,8 +6,8 @@ export class ResourceUri extends URL {
 
     /**
      * @param {String | URL} url
-     * @param {String | URL} base
-     * @param {String | URL} rootContainer
+     * @param {String | URL?} base
+     * @param {String | URL?} rootContainer
      */
     constructor(url, base, rootContainer) {
         super(url, base)
@@ -15,7 +15,7 @@ export class ResourceUri extends URL {
         if (rootContainer) {
             if (rootContainer instanceof ResourceUri) {
                 if (!rootContainer.isContainer) {
-                    throw "Root container must be container"
+                    throw new Error("Root container must be container")
                 }
 
                 this.#root = rootContainer
@@ -55,7 +55,7 @@ export class ResourceUri extends URL {
     }
 
     isAncestorOf(other) {
-        if (!other instanceof ResourceUri) {
+        if (!(other instanceof ResourceUri)) {
             return false
         }
 
