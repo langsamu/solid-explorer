@@ -51,7 +51,7 @@ export class TreeElement extends HTMLDetailsElement {
             }))
         })
 
-        const childContainers = children.filter(child => child.isContainer)
+        const childContainers = [...children].filter(child => child.isContainer)
 
         for (const child of childContainers) {
             const childElement = document.createElement("details", {is: "solid-tree"})

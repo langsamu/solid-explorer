@@ -1,9 +1,9 @@
 import "../packages/unpkg.com/n3@1.16.2/browser/n3.min.js"
-import "../packages/unpkg.com/jsonld@8.1.0/dist/jsonld.esm.min.js"
 import {UmaClient} from "./UmaClient.js"
 import {HttpHeader, HttpMethod, Ldp, Mime, Solid} from "../packages/common/Vocabulary.js"
-import {bearer, toTriples} from "../packages/common/Utils.js"
+import {bearer} from "../packages/common/Utils.js"
 import {ResourceUri} from "./ResourceUri.js"
+import {GraphNode} from "../packages/wrap/GraphNode.js"
 
 export class SolidClient {
     /** @type {ReactiveAuthenticationClient} */
@@ -53,20 +53,15 @@ export class SolidClient {
             cache: "no-store",
             method: HttpMethod.Get,
             headers: {
-                [HttpHeader.Accept]: Mime.JsonLd
+                [HttpHeader.Accept]: Mime.Turtle
             }
         }
 
         const resourceResponse = await this.#authenticationClient.fetch(resourceUri, init)
 
-        const resourceJson = await resourceResponse.json()
-        const triples = toTriples(await jsonld.flatten(resourceJson))
-
-        return triples
-            .filter(t => t.subject === resourceUri.toString())
-            .filter(t => t.predicate === Ldp.Contains)
-            .map(t => t.object)
-            .map(o => new ResourceUri(o, resourceUri, resourceUri.root))
+        const resourceText = await resourceResponse.text()
+        const dataset = new N3.Store(new N3.Parser({baseIRI: resourceUri.toString()}).parse(resourceText))
+        return new ContainerGraph(dataset, resourceUri).resource.contains
     }
 
     async getDescendantsDepthFirst(resourceUri) {
@@ -227,4 +222,47 @@ export class SolidClient {
 
         return accessGrantResponse.headers.get(HttpHeader.Location)
     }
+}
+
+class ContainerGraph {
+    #dataset
+    #resourceUri
+
+    constructor(dataset, resourceUri) {
+        this.#dataset = dataset
+        this.#resourceUri = resourceUri;
+    }
+
+    /**
+     * @return {Resource}
+     */
+    get resource() {
+        for (const q of this.#dataset.match(null, Vocabulary.contains)) {
+            return new Resource(this.#resourceUri, q.subject, this.#dataset, N3.DataFactory)
+        }
+    }
+}
+
+class Resource extends GraphNode {
+    #resourceUri
+
+    constructor(resourceUri, subject, dataset, dataFactory) {
+        super(subject, dataset, dataFactory)
+
+        this.#resourceUri = resourceUri;
+    }
+
+    /**
+     * @return {Set<string>}
+     */
+    get contains() {
+        return this.live(
+            Vocabulary.contains,
+            N3.DataFactory.namedNode,
+            t => new ResourceUri(t.value, this.#resourceUri, this.#resourceUri.root))
+    }
+}
+
+class Vocabulary {
+    static contains = N3.DataFactory.namedNode(Ldp.Contains)
 }

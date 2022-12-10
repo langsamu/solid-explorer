@@ -90,16 +90,17 @@ The window will then close and the operation will continue.<br>
             return
         }
 
-        if (profile.storages.length === 0) {
+        if (profile.agent.storage.size === 0) {
             this.#storageNotFoundInWebIdDialog.showModal()
             return
         }
 
-        if (profile.storages.length === 1) {
-            return profile.storages[0]
+        if (profile.agent.storage.size === 1) {
+            const [storage] = profile.agent.storage
+            return storage
         }
 
-        const storage = await this.#storageSelectDialog.getModalValue(profile.storages)
+        const storage = await this.#storageSelectDialog.getModalValue(profile.agent.storage)
         if (!storage) {
             return
         }
@@ -115,6 +116,9 @@ The window will then close and the operation will continue.<br>
         this.#authenticationDialog.close()
     }
 
+    /**
+     * @return {Promise<Profile>}
+     */
     async #getWebIdProfile() {
         const webIdUri = await this.#getWebIdUri()
         if (!webIdUri) {
@@ -130,10 +134,10 @@ The window will then close and the operation will continue.<br>
             return
         }
 
-        if (profile.issuers.length === 1) {
-            this.#idpUriDialog.value = profile.issuers[0]
+        if (profile.agent.issuer.size === 1) {
+            [this.#idpUriDialog.value] = profile.agent.issuer
         } else {
-            this.#idpUriDialog.value = await this.#idpSelectDialog.getModalValue(profile.issuers)
+            this.#idpUriDialog.value = await this.#idpSelectDialog.getModalValue(profile.agent.issuer)
         }
     }
 
