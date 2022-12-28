@@ -16,7 +16,7 @@ class SolidOidcUi extends HTMLElement {
     connectedCallback() {
         this.#idpUriDialog = this.ownerDocument.createElement("dialog", {is: "solid-input-dialog"})
         this.#idpUriDialog.id = "idpUriDialog"
-        this.#idpUriDialog.dataset.title = "Provide IDP URI"
+        this.#idpUriDialog.dataset.title = "What is your identity provider?"
         this.#idpUriDialog.dataset.label = "IDP URI"
         this.#idpUriDialog.dataset.required = true
         this.#idpUriDialog.dataset.type = "url"
@@ -25,16 +25,16 @@ class SolidOidcUi extends HTMLElement {
         this.#idpUriDialog.addOption("https://login.inrupt.com/")
         this.#idpUriDialog.addOption("https://openid.dev-next.inrupt.com/")
         this.#idpUriDialog.addOption("https://broker.inrupt.com/")
-        const getIdpFromWebIdButton = this.ownerDocument.createElement("button")
-        getIdpFromWebIdButton.type = "button"
-        getIdpFromWebIdButton.innerText = "Get from WebID"
-        getIdpFromWebIdButton.addEventListener("click", this.#getIdpFromWebId.bind(this))
-        this.#idpUriDialog.contents.appendChild(getIdpFromWebIdButton)
+        const idpDescription = this.ownerDocument.createElement("div")
+        idpDescription.innerHTML = "<small>We need an identity provider (IDP) to authenticate you.<br>Please enter an address in the text field below or choose one from the list.<br>Alternatively,you can <button type='button' style='background: inherit; border: inherit; padding: inherit; font-family : inherit; text-decoration: underline; color: -moz-hyperlinktext; color: -webkit-link; cursor: pointer'>retrieve the IDP from your WebID</button>.</small>"
+        idpDescription.style.margin = "20px 0"
+        idpDescription.querySelector("button").addEventListener("click", this.#getIdpFromWebId.bind(this))
+        this.#idpUriDialog.contents.appendChild(idpDescription)
         this.appendChild(this.#idpUriDialog)
 
         this.#webIdUriDialog = this.ownerDocument.createElement("dialog", {is: "solid-input-dialog"})
         this.#webIdUriDialog.id = "webIdUriDialog"
-        this.#webIdUriDialog.dataset.title = "Provide WebID URI"
+        this.#webIdUriDialog.dataset.title = "What is your WebID?"
         this.#webIdUriDialog.dataset.label = "WebID URI"
         this.#webIdUriDialog.dataset.required = true
         this.#webIdUriDialog.dataset.type = "url"
@@ -43,6 +43,10 @@ class SolidOidcUi extends HTMLElement {
         this.#webIdUriDialog.addOption("https://id.inrupt.com/")
         this.#webIdUriDialog.addOption("https://id.dev-next.inrupt.com/")
         this.#webIdUriDialog.addOption("https://pod.inrupt.com/")
+        const webidDescription = this.ownerDocument.createElement("div")
+        webidDescription.innerHTML = "<small>We need the address of your WebID to read it and retrieve some information.<br>Please enter an address in the text field below or choose one from the list.</small>"
+        webidDescription.style.margin = "20px 0"
+        this.#webIdUriDialog.contents.appendChild(webidDescription)
         this.appendChild(this.#webIdUriDialog)
 
         this.#idpSelectDialog = this.ownerDocument.createElement("dialog", {is: "solid-select-dialog"})
