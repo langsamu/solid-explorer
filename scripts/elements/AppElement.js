@@ -9,6 +9,8 @@ import {OidcCredentialManager} from "../../packages/oidc/OidcCredentialManager.j
 import {ReactiveAuthenticationClient} from "../ReactiveAuthenticationClient.js"
 import {UmaTokenProvider} from "../UmaTokenProvider.js"
 import {OidcTokenProvider} from "../../packages/oidc/OidcTokenProvider.js"
+import {ResourceSelectedEvent} from "../ResourceSelectedEvent.js"
+import {ResourceUriString} from "../ResourceUriStringEvent.js"
 
 class AppElement extends HTMLBodyElement {
     #oidc
@@ -73,14 +75,13 @@ class AppElement extends HTMLBodyElement {
 
     #wireHandlers() {
         this.#fileMenu.addEventListener("click", this.#onFileMenu.bind(this))
-        this.#addressBar.addEventListener("resourceUriEntered", this.#onResourceUriEntered.bind(this))
-        this.#tree.addEventListener("resourceClick", this.#onTreeResourceClick.bind(this))
-        this.#crumbTrail.addEventListener("resourceClick", this.#onCrumbTrailResourceClick.bind(this))
         this.#container.addEventListener("resourceClick", this.#onContainerResourceClick.bind(this))
         this.#container.addEventListener("resourceDoubleClick", this.#onContainerItemDoubleClick.bind(this))
         this.#container.addEventListener("resourceContextMenu", this.#onResourceContextMenu.bind(this))
         this.#tree.addEventListener("resourceContextMenu", this.#onResourceContextMenu.bind(this))
 
+        this.addEventListener(ResourceSelectedEvent.TYPE, this.#onResourceSelected.bind(this))
+        this.addEventListener(ResourceUriString.TYPE, this.#onResourceUriString.bind(this))
         this.addEventListener("needChildren", this.#onNeedChildren.bind(this))
         this.addEventListener("needResource", this.#onNeedResource.bind(this))
         this.addEventListener("needRoot", this.#onNeedRoot.bind(this))
@@ -145,24 +146,21 @@ class AppElement extends HTMLBodyElement {
     }
 
     async #onHashChange(e) {
-        const resourceUriString = decodeURIComponent(new URL(e.newURL).hash.substring(1))
+        if (history.state) {
+            const resourceUri = new ResourceUri(history.state.resourceUri, undefined, history.state.root)
+            this.dispatchEvent(new ResourceSelectedEvent(resourceUri))
+        } else {
+            const resourceUriString = decodeURIComponent(new URL(e.newURL).hash.substring(1))
+            const rootContainerUri = await this.#solid.getRootContainer(resourceUriString)
+            const resourceUri = new ResourceUri(resourceUriString, undefined, rootContainerUri)
+            this.dispatchEvent(new ResourceSelectedEvent(resourceUri))
 
-        const rootContainerUri = await this.#solid.getRootContainer(resourceUriString)
-        const resourceUri = new ResourceUri(resourceUriString, undefined, rootContainerUri)
-
-        this.#tree.resourceUri = resourceUri.root
-        this.#container.resourceUri = resourceUri.isContainer ? resourceUri : resourceUri.parent
-        this.#addressBar.resourceUri = resourceUri
-        this.#crumbTrail.resourceUri = resourceUri
-        this.#preview.resourceUri = resourceUri
+            history.replaceState({resourceUri: resourceUriString, root: rootContainerUri.toString()}, null, location)
+        }
     }
 
-    async #onTreeResourceClick(e) {
-        location.hash = encodeURIComponent(e.detail.resourceUri)
-    }
-
-    async #onCrumbTrailResourceClick(e) {
-        location.hash = encodeURIComponent(e.detail.resourceUri)
+    async #onResourceUriString(e) {
+        location.hash = encodeURIComponent(e.resourceUri)
     }
 
     async #onContainerResourceClick(e) {
@@ -177,8 +175,21 @@ class AppElement extends HTMLBodyElement {
         }
     }
 
-    async #onResourceUriEntered(e) {
-        location.hash = encodeURIComponent(e.detail.resourceUri)
+    /**
+     * @param {ResourceSelectedEvent} e
+     * @return {Promise<void>}
+     */
+    async #onResourceSelected(e) {
+        this.ownerDocument.title = `${e.resourceUri.name} - Solid Explorer`
+
+        if (e.target === this) {
+            return
+        }
+
+        const url = new URL(location)
+        url.hash = encodeURIComponent(e.resourceUri)
+
+        history.pushState({resourceUri: e.resourceUri.toString(), root: e.resourceUri.root.toString()}, null, url)
     }
 
     async #onDeleteResource(e) {
@@ -311,9 +322,7 @@ class AppElement extends HTMLBodyElement {
     async #getSolidResourceUriFromWebId() {
         const storage = await this.#oidc.getStorageFromWebId()
 
-        const rootContainerUri = await this.#solid.getRootContainer(storage)
-        this.#addressBar.resourceUri = new ResourceUri(storage, undefined, rootContainerUri)
-        this.#addressBar.focus()
+        location.hash = encodeURIComponent(storage)
     }
 
     async #uploadMultiple(containerUri, files) {

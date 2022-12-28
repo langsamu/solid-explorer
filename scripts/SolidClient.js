@@ -256,10 +256,11 @@ class Resource extends GraphNode {
      * @return {Set<string>}
      */
     get contains() {
+        const root = this.#resourceUri.isRoot ? this.#resourceUri : this.#resourceUri.root;
         return this.live(
             Vocabulary.contains,
             N3.DataFactory.namedNode,
-            t => new ResourceUri(t.value, this.#resourceUri, this.#resourceUri.root))
+            t => new ResourceUri(t.value, undefined, root))
     }
 }
 

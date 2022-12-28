@@ -1,54 +1,40 @@
-export class CrumbTrailElement extends HTMLUListElement {
-    /** @type {ResourceUri} */
-    #resourceUri
+import {ResourceSelectedEvent} from "../ResourceSelectedEvent.js"
 
+export class CrumbTrailElement extends HTMLUListElement {
     constructor() {
         super()
 
-        this.addEventListener("resourceUriSet", this.#onResourceUriSet.bind(this))
+        this.ownerDocument.addEventListener(ResourceSelectedEvent.TYPE, this.#onResourceSelected.bind(this), true)
     }
 
-    /** @return {ResourceUri} */
-    get resourceUri() {
-        return this.#resourceUri
-    }
-
-    /** @param {ResourceUri} value */
-    set resourceUri(value) {
-        this.#resourceUri = value
-
-        this.dispatchEvent(new CustomEvent("resourceUriSet"))
-    }
-
-    async #onResourceUriSet() {
-        while(this.firstElementChild){
+    /**
+     * @param {ResourceSelectedEvent} e
+     */
+    #onResourceSelected(e) {
+        while (this.firstElementChild) {
             this.removeChild(this.firstElementChild)
         }
 
-
         const li = document.createElement("li")
         const span = document.createElement("span")
-        span.innerText = this.resourceUri.isRoot ? "root" : this.resourceUri.name
+        span.innerText = e.resourceUri.isRoot ? "root" : e.resourceUri.name
         li.appendChild(span)
         this.prepend(li)
 
 
-        let a = this.resourceUri.parent
-        while (a) {
+        let parent = e.resourceUri.parent
+        while (parent) {
             const li = document.createElement("li")
             const button = document.createElement("button")
-            button.innerText = a.isRoot ? "root" : a.name
-            button.xx=a
+            button.innerText = parent.isRoot ? "root" : parent.name
+            button.xx = parent
 
-            button.addEventListener("click", e =>this.dispatchEvent(new CustomEvent("resourceClick", {
-                bubbles: true,
-                detail: {resourceUri: e.target.xx}
-            })))
+            button.addEventListener("click", e => this.dispatchEvent(new ResourceSelectedEvent(e.target.xx)))
 
             li.appendChild(button)
             this.prepend(li)
 
-            a = a.parent
+            parent = parent.parent
         }
     }
 }

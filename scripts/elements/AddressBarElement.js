@@ -1,3 +1,6 @@
+import {ResourceSelectedEvent} from "../ResourceSelectedEvent.js"
+import {ResourceUriString} from "../ResourceUriStringEvent.js"
+
 class AddressBarElement extends HTMLFormElement {
     /** @type {ResourceUri} */
     #resourceUri
@@ -5,8 +8,8 @@ class AddressBarElement extends HTMLFormElement {
     constructor() {
         super()
 
+        this.ownerDocument.addEventListener(ResourceSelectedEvent.TYPE, this.#onResourceSelected.bind(this), true)
         this.addEventListener("submit", this.#onSubmit.bind(this))
-        this.addEventListener("resourceUriSet", this.#onResourceUriSet.bind(this))
         this.addEventListener("focus", this.#onFocus.bind(this))
         this.addEventListener("input", this.#onInput.bind(this))
     }
@@ -44,29 +47,28 @@ class AddressBarElement extends HTMLFormElement {
         switch (e.submitter.value) {
             case "up":
                 this.resourceUri = this.resourceUri.parent
-
-                this.dispatchEvent(new CustomEvent("resourceUriEntered", {
-                    bubbles: true,
-                    detail: {resourceUri: this.resourceUri}
-                }))
+                this.dispatchEvent(new ResourceSelectedEvent(this.resourceUri))
 
                 break;
             case "go":
-                this.dispatchEvent(new CustomEvent("resourceUriEntered", {
-                    bubbles: true,
-                    detail: {resourceUri: this.#input.value}
-                }))
+                this.dispatchEvent(new ResourceUriString(this.#input.value))
 
                 break;
         }
     }
 
-    async #onResourceUriSet() {
-        this.#input.value = this.#resourceUri.toString()
-        this.#upButton.disabled = this.#resourceUri.isRoot
+    /**
+     * @param {ResourceSelectedEvent} e
+     */
+    #onResourceSelected(e) {
+        if (e.target === this) {
+            return
+        }
+
+        this.resourceUri = e.resourceUri
     }
 
-    async #onFocus() {
+    #onFocus() {
         this.#input.focus()
     }
 

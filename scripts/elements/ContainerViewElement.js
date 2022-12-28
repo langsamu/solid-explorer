@@ -1,4 +1,5 @@
 import "./ContainerViewItemElement.js"
+import {ResourceSelectedEvent} from "../ResourceSelectedEvent.js"
 
 export class ContainerViewElement extends HTMLDivElement {
     /** @type {ResourceUri} */
@@ -7,6 +8,7 @@ export class ContainerViewElement extends HTMLDivElement {
     constructor() {
         super()
 
+        this.ownerDocument.addEventListener(ResourceSelectedEvent.TYPE, this.#onResourceSelected.bind(this), true)
         this.addEventListener("gotResourceUri", this.refresh.bind(this))
         this.addEventListener("contextmenu", this.#onContextMenu.bind(this))
         this.addEventListener("click", this.#onClick.bind(this))
@@ -83,6 +85,17 @@ export class ContainerViewElement extends HTMLDivElement {
         for (const child of this.querySelectorAll("div.selected")) {
             child.classList.toggle("selected")
         }
+    }
+
+    /**
+     * @param {ResourceSelectedEvent} e
+     */
+    #onResourceSelected(e) {
+        if (e.target === this) {
+            return
+        }
+
+        this.resourceUri = e.resourceUri
     }
 }
 
