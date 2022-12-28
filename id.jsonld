@@ -1,6 +1,8 @@
 {
   "client_name": "Solid Explorer",
-  "client_uri": "https://langsamu.github.io/solid-explorer/",
+  "client_uri": "https://github.com/langsamu/solid-explorer",
+  "policy_uri": "https://github.com/langsamu/solid-explorer/blob/main/data-policy.md",
+
 
   "client_id": "https://langsamu.github.io/solid-explorer/id.jsonld",
   "logo_uri": "https://langsamu.github.io/solid-explorer/logo.svg",

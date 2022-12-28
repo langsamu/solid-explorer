@@ -31,7 +31,11 @@ export class OidcClient {
                     [HttpHeader.ContentType]: Mime.Json
                 },
                 body: JSON.stringify({
-                    redirect_uris: [this.#redirectUri]
+                    redirect_uris: [this.#redirectUri],
+                    client_name: "Solid Explorer",
+                    logo_uri: "https://langsamu.github.io/solid-explorer/logo.svg",
+                    client_uri: "https://github.com/langsamu/solid-explorer",
+                    policy_uri: "https://github.com/langsamu/solid-explorer/blob/main/data-policy.md"
                 }),
                 redirect: "manual" // NSS responds with 201
             })
