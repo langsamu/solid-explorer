@@ -60,7 +60,6 @@ class AppElement extends HTMLBodyElement {
         this.#fileContextDialog = this.ownerDocument.createElement("dialog", {is: "solid-context-dialog"})
         this.#fileContextDialog.dataset.title = "App operations"
         this.#fileContextDialog.addItem("openNew", "Open new window")
-        this.#fileContextDialog.addItem("getSolidResourceUriFromWebIdButton", "Get resource URI from WebID")
         this.#fileContextDialog.addItem("clearCredentials", "Clear credentials")
         this.appendChild(this.#fileContextDialog)
 
@@ -74,6 +73,8 @@ class AppElement extends HTMLBodyElement {
     }
 
     #wireHandlers() {
+        this.querySelector("#getSolidResourceUriFromWebIdButton").addEventListener("click", this.#getSolidResourceUriFromWebId.bind(this))
+
         this.#fileMenu.addEventListener("click", this.#onFileMenu.bind(this))
         this.#container.addEventListener("resourceClick", this.#onContainerResourceClick.bind(this))
         this.#container.addEventListener("resourceDoubleClick", this.#onContainerItemDoubleClick.bind(this))
@@ -321,6 +322,10 @@ class AppElement extends HTMLBodyElement {
 
     async #getSolidResourceUriFromWebId() {
         const storage = await this.#oidc.getStorageFromWebId()
+
+        if (!storage) {
+            return
+        }
 
         location.hash = encodeURIComponent(storage)
     }
