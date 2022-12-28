@@ -8,6 +8,7 @@ class AddressBarElement extends HTMLFormElement {
         this.addEventListener("submit", this.#onSubmit.bind(this))
         this.addEventListener("resourceUriSet", this.#onResourceUriSet.bind(this))
         this.addEventListener("focus", this.#onFocus.bind(this))
+        this.addEventListener("input", this.#onInput.bind(this))
     }
 
     get #input() {
@@ -16,6 +17,10 @@ class AddressBarElement extends HTMLFormElement {
 
     get #upButton() {
         return this.querySelector("button[value=up]")
+    }
+
+    get #goButton() {
+        return this.querySelector("button[value=go]")
     }
 
     /** @return {ResourceUri} */
@@ -27,7 +32,10 @@ class AddressBarElement extends HTMLFormElement {
     set resourceUri(value) {
         this.#resourceUri = value
 
-        this.dispatchEvent(new CustomEvent("resourceUriSet"))
+        this.#input.value = this.#resourceUri.toString()
+        this.#upButton.disabled = this.#resourceUri.isRoot
+
+        this.#onInput()
     }
 
     #onSubmit(e) {
@@ -60,6 +68,10 @@ class AddressBarElement extends HTMLFormElement {
 
     async #onFocus() {
         this.#input.focus()
+    }
+
+    #onInput() {
+        this.#goButton.disabled = this.#resourceUri.toString() === this.#input.value
     }
 }
 
