@@ -20,6 +20,7 @@ class AppElement extends HTMLBodyElement {
     #grantRequestDialog
     #grantResponseDialog
     #solid
+    #gettingStartedDialog
 
     constructor() {
         super()
@@ -70,10 +71,31 @@ class AppElement extends HTMLBodyElement {
         this.#grantResponseDialog = this.ownerDocument.createElement("dialog", {is: "solid-grant-response-dialog"})
         this.#grantResponseDialog.dataset.title = "Access grant URI"
         this.appendChild(this.#grantResponseDialog)
+
+        this.#gettingStartedDialog = this.ownerDocument.createElement("dialog", {is: "solid-ok-dialog"})
+        this.#gettingStartedDialog.dataset.title = "Getting started"
+        this.#gettingStartedDialog.contents.innerHTML = `
+            <h1>Solid Explorer</h1>
+            <p>An experimental application to interact with Solid resources.</p>
+            <p>
+                <span><strong>To start</strong>, either </span>
+                <ul>
+                    <li>click the <q><a href="#getSolidResourceUriFromWebIdButton">Get resource URI from WebID</a></q> button or</li>
+                    <li>type a Solid resource URI in the <q><a href="#resourceUriInput">Resource URI</a></q> field, then hit <code>Enter</code> or click the <q><a href="#goButton">go</a></q> button.</li>
+                    <li>Click the <q><a href="#helpButton">Help</a></q> button to show this message.</li>
+                </ul></p>
+            <p>
+            <p><a href="https://github.com/langsamu/solid-explorer">Source code</a> on <svg style="height: 0.75em" viewBox="0 0 127.06 34.36" xmlns="http://www.w3.org/2000/svg"><title>GitHub</title><path d="M112.83 27.61v-9.96s1.38-.85 3.08-1c2.15-.2 4.22.45 4.22 5.58 0 5.4-.93 6.47-3.83 6.38-2.07-.06-3.47-1-3.47-1zm.13-15.21V1.75a.5.5 0 0 0-.5-.5h-6.02a.5.5 0 0 0-.5.5V33.2c0 .27.22.5.5.5h4.18c.19 0 .33-.1.44-.27.1-.17.25-1.45.25-1.45s2.47 2.34 7.13 2.34c5.48 0 8.62-2.78 8.62-12.48 0-9.7-5.01-10.96-8.4-10.96-3.4 0-5.7 1.51-5.7 1.51zm-10.61-.8h-5.97a.5.5 0 0 0-.5.5v15.42s-1.5 1.11-3.66 1.11c-2.15 0-2.72-.97-2.72-3.08V12.1a.5.5 0 0 0-.5-.5h-6.05a.5.5 0 0 0-.5.5v14.47c0 6.25 3.49 7.79 8.28 7.79 3.94 0 7.11-2.18 7.11-2.18s.15 1.15.22 1.28c.07.14.25.28.44.28l3.85-.02a.5.5 0 0 0 .5-.5V12.1a.5.5 0 0 0-.5-.5m-66.96.45a.5.5 0 0 0-.5-.5h-6c-.27 0-.51.28-.51.56v20.8c0 .61.38.8.87.8h5.4c.6 0 .74-.3.74-.8zM31.94 1.96a3.9 3.9 0 0 0-3.87 3.92 3.9 3.9 0 0 0 3.87 3.91 3.9 3.9 0 0 0 3.88-3.91 3.9 3.9 0 0 0-3.88-3.92zM13.8 14.71a.5.5 0 0 0-.5.5v5.22c0 .27.22.5.5.5h4.16v6.48s-.93.32-3.52.32c-3.05 0-7.31-1.11-7.31-10.48 0-9.38 4.44-10.61 8.6-10.61 3.6 0 5.16.63 6.15.94.31.1.6-.21.6-.49l1.19-5.04a.47.47 0 0 0-.2-.4C23.08 1.38 20.64 0 14.45 0 7.31 0 0 3.03 0 17.61s8.37 16.75 15.43 16.75c5.84 0 9.38-2.5 9.38-2.5.15-.07.16-.28.16-.37V15.2a.5.5 0 0 0-.5-.5zM79.5 1.75a.5.5 0 0 0-.5-.5h-6a.5.5 0 0 0-.5.5v11.62h-9.37V1.75a.5.5 0 0 0-.5-.5h-6.01a.5.5 0 0 0-.5.5V33.2c0 .27.22.5.5.5h6a.5.5 0 0 0 .5-.5V19.75h9.38l-.02 13.46c0 .27.22.5.5.5H79a.5.5 0 0 0 .5-.5zm-31.34 9.8V5.58c0-.23-.13-.34-.39-.34h-6.14c-.24 0-.37.1-.37.33v6.16l-3.29.8a.5.5 0 0 0-.36.48v3.87c0 .28.22.5.5.5h3.15v9.31c0 6.92 4.85 7.6 8.12 7.6 1.5 0 3.29-.49 3.58-.6.18-.06.28-.25.28-.45V29a.5.5 0 0 0-.49-.5c-.26 0-.93.1-1.63.1-2.21 0-2.96-1.03-2.96-2.36v-8.85h4.5a.5.5 0 0 0 .5-.5v-4.84a.5.5 0 0 0-.5-.5z" fill="#0f0e0f"></path></svg>.</p>
+            <label>
+                <input autofocus type="checkbox" checked>
+                <span>Show on startup</span>
+            </label>`
+        this.appendChild(this.#gettingStartedDialog)
     }
 
     #wireHandlers() {
         this.querySelector("#getSolidResourceUriFromWebIdButton").addEventListener("click", this.#getSolidResourceUriFromWebId.bind(this))
+        this.querySelector("#helpButton").addEventListener("click", this.#onHelp.bind(this))
 
         this.#fileMenu.addEventListener("click", this.#onFileMenu.bind(this))
         this.#container.addEventListener("resourceClick", this.#onContainerResourceClick.bind(this))
@@ -141,17 +163,40 @@ class AppElement extends HTMLBodyElement {
     // region event handlers
 
     async #onLoad() {
-        if (location.hash) {
+        let resourceUriString
+        try {
+            resourceUriString = new URL(decodeURIComponent(location.hash.substring(1)))
+        } catch {
+        }
+
+        if (resourceUriString) {
             dispatchEvent(new HashChangeEvent("hashchange", {newURL: location.href}))
+        } else {
+            const previousShow = JSON.parse(localStorage.getItem("gettingStarted.showOnStartup"))
+            if (previousShow === null || previousShow) {
+                await this.#onHelp()
+            }
         }
     }
 
+    async #onHelp() {
+        await this.#gettingStartedDialog.getModalValue()
+        const showOnStartup = this.#gettingStartedDialog.contents.querySelector("input").checked
+        localStorage.setItem("gettingStarted.showOnStartup", JSON.stringify(showOnStartup))
+    }
+
     async #onHashChange(e) {
+        const resourceUriString = decodeURIComponent(new URL(e.newURL).hash.substring(1));
+        try {
+            new URL(resourceUriString)
+        } catch {
+            return
+        }
+
         if (history.state) {
             const resourceUri = new ResourceUri(history.state.resourceUri, undefined, history.state.root)
             this.dispatchEvent(new ResourceSelectedEvent(resourceUri))
         } else {
-            const resourceUriString = decodeURIComponent(new URL(e.newURL).hash.substring(1))
             const rootContainerUri = await this.#solid.getRootContainer(resourceUriString)
             const resourceUri = new ResourceUri(resourceUriString, undefined, rootContainerUri)
             this.dispatchEvent(new ResourceSelectedEvent(resourceUri))
