@@ -7,7 +7,6 @@ export class TreeElement extends HTMLDetailsElement {
     constructor() {
         super()
 
-        //addEventListener("resourceClick", this.#onResourceClick.bind(this), true)
         this.ownerDocument.addEventListener(ResourceSelectedEvent.TYPE, this.#onResourceSelected.bind(this), true)
         this.ownerDocument.addEventListener("xxx", this.#onResourceSelected.bind(this), true)
         this.addEventListener("toggle", this.#onToggle.bind(this))

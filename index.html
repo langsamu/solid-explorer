@@ -66,8 +66,20 @@
 
             #preview {
                 flex-grow: 1;
-                width: 0;
-                overflow: auto;
+                display: flex;
+                flex-direction: column;
+            }
+
+            #preview iframe {
+                flex-grow: 1;
+            }
+
+            #preview .CodeMirror {
+                flex-grow: 1;
+            }
+
+            #preview .CodeMirror-wrap pre {
+                word-break: break-word;
             }
 
             ul[is=solid-crumb-trail] li {
@@ -114,6 +126,7 @@
                 background-color: lightgoldenrodyellow
             }
         </style>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
         <link rel="icon" href="logo.svg">
     </head>
     <body is="solid-app">
@@ -150,7 +163,7 @@
         </div>
         <gutter-column style="grid-area: divider2"></gutter-column>
         <div style="grid-area: viewer; display: flex">
-            <iframe id="preview" is="solid-resource-viewer"></iframe>
+            <div id="preview" is="solid-viewer"></div>
         </div>
         <script type="module">
             import "./packages/unpkg.com/split-grid@1.0.11/dist/split-grid.min.js"

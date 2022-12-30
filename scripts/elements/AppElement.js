@@ -98,7 +98,6 @@ class AppElement extends HTMLBodyElement {
         this.querySelector("#helpButton").addEventListener("click", this.#onHelp.bind(this))
 
         this.#fileMenu.addEventListener("click", this.#onFileMenu.bind(this))
-        this.#container.addEventListener("resourceClick", this.#onContainerResourceClick.bind(this))
         this.#container.addEventListener("resourceDoubleClick", this.#onContainerItemDoubleClick.bind(this))
         this.#container.addEventListener("resourceContextMenu", this.#onResourceContextMenu.bind(this))
         this.#tree.addEventListener("resourceContextMenu", this.#onResourceContextMenu.bind(this))
@@ -207,10 +206,6 @@ class AppElement extends HTMLBodyElement {
 
     async #onResourceUriString(e) {
         location.hash = encodeURIComponent(e.resourceUri)
-    }
-
-    async #onContainerResourceClick(e) {
-        this.#preview.resourceUri = e.detail.resourceUri
     }
 
     async #onContainerItemDoubleClick(e) {

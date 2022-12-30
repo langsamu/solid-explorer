@@ -1,112 +1,72 @@
 import {HttpHeader, Mime} from "../../packages/common/Vocabulary.js"
+import "https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"
+import "https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/turtle/turtle.min.js"
+import "https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"
+import "https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/xml/xml.min.js"
 
-export class ResourceViewerElement extends HTMLIFrameElement {
-    /** @type {ResourceUri} */
-    #resourceUri
-    #abortController = new AbortController()
-
+export class ResourceViewerElement extends HTMLDivElement {
     constructor() {
         super()
 
-        this.addEventListener("gotResourceUri", this.#onGotResourceUri.bind(this))
+        this.ownerDocument.addEventListener("resourceClick", this.#onResourceClick.bind(this), true)
     }
 
-    /** @return {ResourceUri} */
-    get resourceUri() {
-        return this.#resourceUri
-    }
-
-    /** @param {ResourceUri} value */
-    set resourceUri(value) {
-        if (value === this.resourceUri) {
-            return
-        }
-
-        this.#resourceUri = value
-
-        this.#abortController.abort()
-        this.#abortController = new AbortController()
-
-        this.dispatchEvent(new CustomEvent("gotResourceUri"))
-    }
-
-    async #onGotResourceUri() {
-        const resourceResponse = await new Promise(resolve => {
+    async #onResourceClick(e) {
+        const response = await new Promise(resolve => {
             this.dispatchEvent(new CustomEvent("needResource", {
                 bubbles: true,
-                detail: {resourceUri: this.resourceUri, resolve, signal: this.#abortController.signal}
+                detail: {resourceUri: e.detail.resourceUri, resolve}
             }))
         })
 
-        await this.#view(resourceResponse)
-    }
-
-    async #view(response) {
+        const nativeMimes = [Mime.Pdf]
         const mime = new ContentType(response.headers.get(HttpHeader.ContentType)).mime
 
-        const nativelyViewableMimes = [Mime.Html, Mime.Text, Mime.Pdf, Mime.Svg, Mime.Jpeg, Mime.Png, Mime.Xml, Mime.Ico, Mime.Gif, Mime.Webp, Mime.Bmp, Mime.Json]
-        const rdfMimes = [Mime.JsonLd, Mime.Ntriples]
-        const isText = mime.type === "text"
-        const isChrome = !!window.chrome
-        const userAgentSupportsTextViewing = isChrome
-        const isNativelyViewable = nativelyViewableMimes.includes(mime.toString())
-        const isRdf = rdfMimes.includes(mime.toString());
+        this.innerHTML = ""
 
-        // All browsers render some MIME types.
-        // Some browsers also render text/*.
-        if (isNativelyViewable || isText && userAgentSupportsTextViewing) {
-            return await this.#viewNatively(response)
+        if (nativeMimes.includes(mime.toString())) {
+            const iframe = this.ownerDocument.createElement("iframe")
+            const blob = await response.blob()
+            const url = URL.createObjectURL(blob)
+            this.appendChild(iframe)
+            iframe.addEventListener("load", () => URL.revokeObjectURL(url), {once: true})
+            iframe.contentWindow.location.replace(url)
+        } else if (mime.type === "image") {
+            const img = this.ownerDocument.createElement("img")
+            const blob = await response.blob()
+            const url = URL.createObjectURL(blob)
+            img.addEventListener("load", () => URL.revokeObjectURL(url), {once: true})
+            img.src = url
+            this.appendChild(img)
+        } else if (mime.type === "audio") {
+            const blob = await response.blob()
+            const url = URL.createObjectURL(blob)
+            const audio = new Audio(url)
+            audio.controls = true
+            audio.autoplay = true
+            this.appendChild(audio)
+        } else if (mime.type === "video") {
+            const blob = await response.blob()
+            const url = URL.createObjectURL(blob)
+            const video = this.ownerDocument.createElement("video")
+            video.src = url
+            video.controls = true
+            video.autoplay = true
+            this.appendChild(video)
+        } else {
+            const codeMirror = new CodeMirror(this, {
+                mode: mime.toString(),
+                lineNumbers: true,
+                lineWrapping: true,
+                readOnly: "nocursor"
+            })
+
+            codeMirror.setValue(await response.text())
         }
-
-        // For browsers that don't render text/*, we convert them to text/plain.
-        // We also convert RDF.
-        if (isText || isRdf) {
-            return await this.#viewAsText(response)
-        }
-
-        // For everything else, show a failure message in preview
-        this.#cantView(response)
-    }
-
-    async #viewNatively(response) {
-        const blob = await response.blob()
-
-        this.#viewBlob(blob)
-    }
-
-    async #viewAsText(response) {
-        const blob = await response.blob()
-        const textBlob = new Blob([blob], {type: Mime.Text})
-
-        this.#viewBlob(textBlob)
-    }
-
-    #cantView(response) {
-        const mime = new ContentType(response.headers.get(HttpHeader.ContentType)).mime
-
-        const html = `
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body style="min-height: 100vh; display: flex; justify-content: center; align-items: center; text-align: center">This resource type (${mime}) can not be previewed.</body>
-</html>`
-        const htmlBlob = new Blob([html], {type: Mime.Html})
-
-        this.#viewBlob(htmlBlob)
-    }
-
-    #viewBlob(blob) {
-        const url = URL.createObjectURL(blob)
-        this.addEventListener("load", () => URL.revokeObjectURL(url), {once: true})
-
-        this.contentWindow.location.replace(url)
     }
 }
 
-customElements.define("solid-resource-viewer", ResourceViewerElement, {extends: "iframe"})
+customElements.define("solid-viewer", ResourceViewerElement, {extends: "div"})
 
 class ContentType {
     original
