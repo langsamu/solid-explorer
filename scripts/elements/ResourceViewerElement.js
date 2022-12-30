@@ -25,16 +25,16 @@ export class ResourceViewerElement extends HTMLDivElement {
         this.innerHTML = ""
 
         if (nativeMimes.includes(mime.toString())) {
-            const iframe = this.ownerDocument.createElement("iframe")
             const blob = await response.blob()
             const url = URL.createObjectURL(blob)
-            this.appendChild(iframe)
-            iframe.addEventListener("load", () => URL.revokeObjectURL(url), {once: true})
-            iframe.contentWindow.location.replace(url)
+            const embed = this.ownerDocument.createElement("embed")
+            embed.src = url
+            embed.addEventListener("load", () => URL.revokeObjectURL(url), {once: true})
+            this.appendChild(embed)
         } else if (mime.type === "image") {
-            const img = this.ownerDocument.createElement("img")
             const blob = await response.blob()
             const url = URL.createObjectURL(blob)
+            const img = this.ownerDocument.createElement("img")
             img.addEventListener("load", () => URL.revokeObjectURL(url), {once: true})
             img.src = url
             this.appendChild(img)
@@ -55,13 +55,23 @@ export class ResourceViewerElement extends HTMLDivElement {
             this.appendChild(video)
         } else {
             const codeMirror = new CodeMirror(this, {
-                mode: mime.toString(),
+                mode: ResourceViewerElement.#convert(mime.toString()),
                 lineNumbers: true,
                 lineWrapping: true,
                 readOnly: "nocursor"
             })
 
             codeMirror.setValue(await response.text())
+        }
+    }
+
+    static #convert(mime) {
+        switch (mime) {
+            case "application/trig":
+            case "application/n-triples":
+                return Mime.Turtle
+            default:
+                return mime
         }
     }
 }
