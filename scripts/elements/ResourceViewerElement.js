@@ -3,6 +3,7 @@ import "https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.
 import "https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/turtle/turtle.min.js"
 import "https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"
 import "https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/xml/xml.min.js"
+import {ContentType} from "./ContentType.js"
 
 export class ResourceViewerElement extends HTMLDivElement {
     constructor() {
@@ -54,58 +55,17 @@ export class ResourceViewerElement extends HTMLDivElement {
             video.autoplay = true
             this.appendChild(video)
         } else {
-            const codeMirror = new CodeMirror(this, {
-                mode: ResourceViewerElement.#convert(mime.toString()),
-                lineNumbers: true,
-                lineWrapping: true,
-                readOnly: "nocursor"
-            })
+            const editor = this.ownerDocument.createElement("div", {is: "solid-editor"})
+            this.appendChild(editor)
 
-            codeMirror.setValue(await response.text())
-        }
-    }
-
-    static #convert(mime) {
-        switch (mime) {
-            case "application/trig":
-            case "application/n-triples":
-                return Mime.Turtle
-            default:
-                return mime
+            editor.dispatchEvent(new CustomEvent("gotResource", {
+                detail: {
+                    response,
+                    resourceUri: e.detail.resourceUri
+                }
+            }))
         }
     }
 }
 
 customElements.define("solid-viewer", ResourceViewerElement, {extends: "div"})
-
-class ContentType {
-    original
-
-    constructor(original) {
-        this.original = original
-    }
-
-    get mime() {
-        return new MimeType(this.original.split(";")[0])
-    }
-}
-
-class MimeType {
-    original
-
-    constructor(original) {
-        this.original = original
-    }
-
-    get type() {
-        return this.original.split("/")[0]
-    }
-
-    get subType() {
-        return this.original.split("/")[1]
-    }
-
-    toString() {
-        return this.original
-    }
-}

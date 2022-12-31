@@ -5,6 +5,7 @@ import "./elements/CrumbTrailElement.js"
 import "./elements/TreeElement.js"
 import "./elements/ContainerViewElement.js"
 import "./elements/ResourceViewerElement.js"
+import "./elements/ResourceEditorElement.js"
 
 import "../packages/dialog/OkCancelDialog.js"
 import "../packages/dialog/OkDialog.js"

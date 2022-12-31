@@ -109,6 +109,7 @@ class AppElement extends HTMLBodyElement {
         this.addEventListener("needRoot", this.#onNeedRoot.bind(this))
         this.addEventListener("deleteResource", this.#onDeleteResource.bind(this))
         this.addEventListener("paste", this.#onPaste.bind(this))
+        this.addEventListener("resourceChanged", this.#onResourceChanged.bind(this))
 
         addEventListener("hashchange", this.#onHashChange.bind(this))
         addEventListener("load", this.#onLoad.bind(this))
@@ -356,6 +357,11 @@ class AppElement extends HTMLBodyElement {
 
     async #onNeedRoot(e) {
         e.detail.resolve(await this.#solid.getRootContainer(e.detail.resourceUri))
+    }
+
+    async #onResourceChanged(e) {
+        const response = await this.#solid.putResource(e.detail.resourceUri, e.detail.resourceType, e.detail.contentType, e.detail.body);
+        e.detail.resolve(response)
     }
 
     // endregion
