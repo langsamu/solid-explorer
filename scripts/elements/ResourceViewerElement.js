@@ -3,7 +3,7 @@ import "https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.
 import "https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/turtle/turtle.min.js"
 import "https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"
 import "https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/xml/xml.min.js"
-import {ContentType} from "./ContentType.js"
+import {ContentType} from "../../packages/common/ContentType.js"
 
 export class ResourceViewerElement extends HTMLDivElement {
     constructor() {
