@@ -5,7 +5,7 @@ const UNAUTHORIZED = 401;
 const WWW_AUTHENTICATE = "Www-Authenticate";
 const DEFAULT_AUTHENTICATION_MECHANISM = "Www-Bearer";
 
-export class ReactiveAuthenticationClient {
+export class ReactiveAuthenticationClient extends EventTarget {
     /** @type {TokenProvider[]} */
     #tokenProviders
 
@@ -18,6 +18,8 @@ export class ReactiveAuthenticationClient {
      * @param fetch
      */
     constructor(tokenProviders, fetch = window.fetch) {
+        super()
+
         this.#tokenProviders = tokenProviders
         this.#underlyingFetch = fetch
     }
@@ -28,36 +30,41 @@ export class ReactiveAuthenticationClient {
      * @return {Promise<Response>}
      */
     async fetch(input, init) {
-        const request = new Request(input, init)
+        this.dispatchEvent(new CustomEvent("fetching", {bubbles: true}))
+        try {
+            const request = new Request(input, init)
 
-        if (ReactiveAuthenticationClient.#isAuthenticated(request)) {
-            return this.#underlyingFetch.call(undefined, request)
-        }
-
-        const cachedChallenge = this.#challengeCache.get(request.url)
-
-        if (cachedChallenge) {
-            const token = await this.#tokenProviders.find(provider => provider.matches(cachedChallenge)).getToken(cachedChallenge)
-
-            if (token !== null) {
-                const upgraded = await ReactiveAuthenticationClient.#upgrade(request, token)
-                return this.fetch(upgraded)
+            if (ReactiveAuthenticationClient.#isAuthenticated(request)) {
+                return await this.#underlyingFetch.call(undefined, request)
             }
+
+            const cachedChallenge = this.#challengeCache.get(request.url)
+
+            if (cachedChallenge) {
+                const token = await this.#tokenProviders.find(provider => provider.matches(cachedChallenge)).getToken(cachedChallenge)
+
+                if (token !== null) {
+                    const upgraded = await ReactiveAuthenticationClient.#upgrade(request, token)
+                    return this.fetch(upgraded)
+                }
+            }
+
+            const originalResponse = await this.#underlyingFetch.call(undefined, request)
+            if (originalResponse.status !== UNAUTHORIZED) {
+                return originalResponse
+            }
+
+            // Extract challenge from unauthorized response.
+            // In case there isn't one (or this header is not exposed to CORS) assume bearer authentication.
+            const challenge = originalResponse.headers.get(WWW_AUTHENTICATE) ?? DEFAULT_AUTHENTICATION_MECHANISM
+
+            this.#challengeCache.set(request.url, challenge)
+            const token = await this.#tokenProviders.find(provider => provider.matches(challenge)).getToken(challenge)
+            const upgraded = await ReactiveAuthenticationClient.#upgrade(request, token)
+            return await this.fetch(upgraded)
+        } finally {
+            this.dispatchEvent(new CustomEvent("fetched", {bubbles: true}))
         }
-
-        const originalResponse = await this.#underlyingFetch.call(undefined, request.clone())
-        if (originalResponse.status !== UNAUTHORIZED) {
-            return originalResponse
-        }
-
-        // Extract challenge from unauthorized response.
-        // In case there isn't one (or this header is not exposed to CORS) assume bearer authentication.
-        const challenge = originalResponse.headers.get(WWW_AUTHENTICATE) ?? DEFAULT_AUTHENTICATION_MECHANISM
-
-        this.#challengeCache.set(request.url, challenge)
-        const token = await this.#tokenProviders.find(provider => provider.matches(challenge)).getToken(challenge)
-        const upgraded = await ReactiveAuthenticationClient.#upgrade(request, token)
-        return this.fetch(upgraded)
     }
 
     /**
@@ -71,7 +78,7 @@ export class ReactiveAuthenticationClient {
     /**
      * @param {Request} request
      * @param {DPopBoundAccessToken} token
-     * @return {Request}
+     * @return {Promise<Request>}
      */
     static async #upgrade(request, token) {
         const upgraded = new Request(request)

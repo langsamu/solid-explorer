@@ -5,12 +5,17 @@ import {bearer} from "../packages/common/Utils.js"
 import {ResourceUri} from "./ResourceUri.js"
 import {GraphNode} from "../packages/wrap/GraphNode.js"
 
-export class SolidClient {
+export class SolidClient extends EventTarget {
     /** @type {ReactiveAuthenticationClient} */
     #authenticationClient
 
     constructor(authenticationClient) {
-        this.#authenticationClient = authenticationClient;
+        super()
+
+        this.#authenticationClient = authenticationClient
+
+        this.#authenticationClient.addEventListener("fetching", e => this.dispatchEvent(new CustomEvent("fetching", {bubbles: true})))
+        this.#authenticationClient.addEventListener("fetched", e => this.dispatchEvent(new CustomEvent("fetched", {bubbles: true})))
     }
 
     async getAcrUri(resourceUri) {

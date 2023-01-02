@@ -21,6 +21,8 @@ class AppElement extends HTMLBodyElement {
     #grantResponseDialog
     #solid
     #gettingStartedDialog
+    #loadingDialog
+    #loadingCounter = 0
 
     constructor() {
         super()
@@ -91,6 +93,10 @@ class AppElement extends HTMLBodyElement {
                 <span>Show on startup</span>
             </label>`
         this.appendChild(this.#gettingStartedDialog)
+
+        this.#loadingDialog = this.ownerDocument.createElement("dialog")
+        this.#loadingDialog.innerText = "⟳ Loading"
+        this.appendChild(this.#loadingDialog)
     }
 
     #wireHandlers() {
@@ -113,6 +119,19 @@ class AppElement extends HTMLBodyElement {
 
         addEventListener("hashchange", this.#onHashChange.bind(this))
         addEventListener("load", this.#onLoad.bind(this))
+
+        this.#solid.addEventListener("fetching", () => {
+            this.#loadingCounter++
+
+            if (!this.#loadingDialog.open) {
+                return this.#loadingDialog.show()
+            }
+        })
+        this.#solid.addEventListener("fetched", () => {
+            if (--this.#loadingCounter === 0) {
+                return this.#loadingDialog.close()
+            }
+        })
     }
 
 
@@ -231,7 +250,10 @@ class AppElement extends HTMLBodyElement {
         const url = new URL(location)
         url.hash = encodeURIComponent(e.resourceUri)
 
-        history.pushState({resourceUri: e.resourceUri.toString(), root: e.resourceUri.root.toString()}, null, url)
+        history.pushState({
+            resourceUri: e.resourceUri.toString(),
+            root: e.resourceUri.isRoot ? e.resourceUri.toString() : e.resourceUri.root.toString()
+        }, null, url)
     }
 
     async #onDeleteResource(e) {
