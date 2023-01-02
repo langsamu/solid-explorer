@@ -20,7 +20,8 @@ export class ResourceEditorElement extends HTMLDivElement {
         })
 
         this.#saveButton = this.appendChild(this.ownerDocument.createElement("button"))
-        this.#saveButton.innerText = "Save"
+        this.#saveButton.disabled = true
+        this.#saveButton.style.display = "none"
         this.#saveButton.addEventListener("click", this.#onSave.bind(this))
 
         this.addEventListener("gotResource", this.#onGotResource.bind(this))
@@ -36,10 +37,16 @@ export class ResourceEditorElement extends HTMLDivElement {
 
         this.#codeMirror.setValue(await e.detail.response.text())
         this.#codeMirror.setOption("lineNumbers", "true")
+
+        this.#codeMirror.on("change", this.#onChange.bind(this))
     }
 
     async #onSave() {
-        await new Promise(resolve => {
+        this.#saveButton.disabled = true
+        this.#saveButton.innerText = "Saving"
+        this.#codeMirror.setOption("readOnly", "nocursor")
+
+        const response = await new Promise(resolve => {
             this.dispatchEvent(new CustomEvent("resourceChanged", {
                 bubbles: true,
                 detail: {
@@ -51,6 +58,29 @@ export class ResourceEditorElement extends HTMLDivElement {
                 }
             }))
         })
+
+        if (response.ok) {
+            this.#saveButton.innerText = "Saved"
+            setTimeout(() => {
+                this.#saveButton.style.display = "none"
+                this.#codeMirror.setOption("readOnly", "")
+                this.#codeMirror.focus()
+            }, 2000)
+        } else {
+            this.#saveButton.innerText = "Could not save"
+            setTimeout(() => {
+                this.#saveButton.innerText = "Save"
+                this.#saveButton.disabled = false
+                this.#codeMirror.setOption("readOnly", "")
+                this.#codeMirror.focus()
+            }, 2000)
+        }
+    }
+
+    async #onChange() {
+        this.#saveButton.innerText = "Save"
+        this.#saveButton.disabled = false
+        this.#saveButton.style.display = "initial"
     }
 
     static #convert(mime) {
