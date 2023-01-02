@@ -3,7 +3,7 @@ import "./GrantResponseDialog.js"
 import "../../packages/dialog/ContextMenuDialog.js"
 
 import {SolidClient} from "../SolidClient.js"
-import {Ldp, Mime} from "../../packages/common/Vocabulary.js"
+import {HttpHeader, Ldp, Mime} from "../../packages/common/Vocabulary.js"
 import {ResourceUri} from "../ResourceUri.js"
 import {OidcCredentialManager} from "../../packages/oidc/OidcCredentialManager.js"
 import {ReactiveAuthenticationClient} from "../ReactiveAuthenticationClient.js"
@@ -11,6 +11,7 @@ import {UmaTokenProvider} from "../UmaTokenProvider.js"
 import {OidcTokenProvider} from "../../packages/oidc/OidcTokenProvider.js"
 import {ResourceSelectedEvent} from "../ResourceSelectedEvent.js"
 import {ResourceUriString} from "../ResourceUriStringEvent.js"
+import {ContentType} from "../../packages/common/ContentType.js"
 
 class AppElement extends HTMLBodyElement {
     #oidc
@@ -49,6 +50,9 @@ class AppElement extends HTMLBodyElement {
         this.#containerContextDialog.addItem("upload", "Upload")
         this.#containerContextDialog.addItem("uploadVerbose", "Upload…")
         this.#containerContextDialog.addItem("grantAccess", "Grant access")
+        if (window.ClipboardItem instanceof Function) {
+            this.#containerContextDialog.addItem("copy", "Copy")
+        }
         this.appendChild(this.#containerContextDialog)
 
         this.#resourceContextDialog = this.ownerDocument.createElement("dialog", {is: "solid-context-dialog"})
@@ -58,6 +62,9 @@ class AppElement extends HTMLBodyElement {
         this.#resourceContextDialog.addItem("download", "Download")
         this.#resourceContextDialog.addItem("delete", "Delete")
         this.#resourceContextDialog.addItem("grantAccess", "Grant access")
+        if (window.ClipboardItem instanceof Function) {
+            this.#resourceContextDialog.addItem("copy", "Copy")
+        }
         this.appendChild(this.#resourceContextDialog)
 
         this.#fileContextDialog = this.ownerDocument.createElement("dialog", {is: "solid-context-dialog"})
@@ -336,6 +343,10 @@ class AppElement extends HTMLBodyElement {
             case "grantAccess":
                 await this.#grantAccess(e.detail.resourceUri)
                 break
+
+            case "copy":
+                await this.#copy(e.detail.resourceUri)
+                break
         }
     }
 
@@ -505,6 +516,40 @@ class AppElement extends HTMLBodyElement {
         }
 
         await this.#grantResponseDialog.showModal(accessGrantUri)
+    }
+
+    async #copy(resourceUri) {
+        const response = await this.#solid.getResource(resourceUri)
+
+        if (!response.ok) {
+            await this.#notFoundDialog.getModalValue()
+            return
+        }
+
+        const mime = new ContentType(response.headers.get(HttpHeader.ContentType)).mime
+
+        if (mime.type === "image") {
+            const blob = await response.blob()
+            const url = URL.createObjectURL(blob)
+
+            const img = new Image()
+            img.addEventListener("load", async () => {
+                URL.revokeObjectURL(url)
+
+                const canvas = this.ownerDocument.createElement("canvas")
+                canvas.width = img.width
+                canvas.height = img.height
+                canvas.getContext("2d").drawImage(img, 0, 0)
+
+                const result = await new Promise(resolve => canvas.toBlob(resolve))
+                const clipboardItem = new ClipboardItem({[result.type]: result})
+                await navigator.clipboard.write([clipboardItem])
+            })
+
+            img.src = url
+        } else {
+            await navigator.clipboard.writeText(await response.text())
+        }
     }
 }
 
