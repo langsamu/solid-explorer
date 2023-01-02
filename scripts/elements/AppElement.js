@@ -53,6 +53,7 @@ class AppElement extends HTMLBodyElement {
         if (window.ClipboardItem instanceof Function) {
             this.#containerContextDialog.addItem("copy", "Copy")
         }
+        this.#containerContextDialog.addItem("copyUri", "Copy URI")
         this.appendChild(this.#containerContextDialog)
 
         this.#resourceContextDialog = this.ownerDocument.createElement("dialog", {is: "solid-context-dialog"})
@@ -65,6 +66,7 @@ class AppElement extends HTMLBodyElement {
         if (window.ClipboardItem instanceof Function) {
             this.#resourceContextDialog.addItem("copy", "Copy")
         }
+        this.#resourceContextDialog.addItem("copyUri", "Copy URI")
         this.appendChild(this.#resourceContextDialog)
 
         this.#fileContextDialog = this.ownerDocument.createElement("dialog", {is: "solid-context-dialog"})
@@ -347,6 +349,10 @@ class AppElement extends HTMLBodyElement {
             case "copy":
                 await this.#copy(e.detail.resourceUri)
                 break
+
+            case "copyUri":
+                await this.#copyUri(e.detail.resourceUri)
+                break
         }
     }
 
@@ -550,6 +556,10 @@ class AppElement extends HTMLBodyElement {
         } else {
             await navigator.clipboard.writeText(await response.text())
         }
+    }
+
+    async #copyUri(resourceUri) {
+        await navigator.clipboard.writeText(resourceUri.toString())
     }
 }
 
