@@ -1,11 +1,10 @@
 import {OkCancelDialog} from "../../packages/dialog/OkCancelDialog.js"
 import {Ldp, Mime} from "../../packages/common/Vocabulary.js"
 
-export class UploadDialog extends OkCancelDialog {
+export class NewResourceDialog extends OkCancelDialog {
     #name
     #rdf
     #mime
-    #file
 
     constructor() {
         super()
@@ -13,7 +12,6 @@ export class UploadDialog extends OkCancelDialog {
         this.#name = this.#buildInputRow("Name", {required: true})
         this.#rdf = this.#buildInputRow("RDF", {type: "checkbox"})
         this.#mime = this.#buildInputRow("Content type", {required: true, pattern: /\w+\/[\w\.+-]+/.source})
-        this.#file = this.#buildInputRow("File", {required: true, type: "file"})
 
         this.#addMimeList()
     }
@@ -22,15 +20,14 @@ export class UploadDialog extends OkCancelDialog {
         this.form.reset()
 
         return await new Promise(resolve => {
-            this.addEventListener("close", () => {
+            this.addEventListener("close", (e) => {
                 if (!this.form.checkValidity()) {
                     resolve()
                 } else {
                     resolve({
                         name: this.#name.value,
                         source: this.#rdf.checked ? Ldp.RdfSource : Ldp.NonRdfSource,
-                        mime: this.#mime.value,
-                        file: this.#file.files[0]
+                        mime: this.#mime.value
                     })
                 }
             }, {once: true})
@@ -57,7 +54,7 @@ export class UploadDialog extends OkCancelDialog {
         const datalist = this.contents.appendChild(document.createElement("datalist"))
         this.#mime.setAttribute("list", datalist.id = Math.random().toString(36))
 
-        for (const [name, value] of UploadDialog.#mimes()) {
+        for (const [name, value] of NewResourceDialog.#mimes()) {
             const option = datalist.appendChild(document.createElement("option"))
             option.value = value
             option.innerText = name
@@ -73,4 +70,4 @@ export class UploadDialog extends OkCancelDialog {
     }
 }
 
-customElements.define("solid-upload-dialog", UploadDialog, {extends: "dialog"})
+customElements.define("solid-new-resource-dialog", NewResourceDialog, {extends: "dialog"})

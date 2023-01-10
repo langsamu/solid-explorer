@@ -46,7 +46,8 @@ class AppElement extends HTMLBodyElement {
         this.#containerContextDialog.addItem("download", "Download RDF")
         this.#containerContextDialog.addItem("delete", "Delete")
         this.#containerContextDialog.addItem("deleteRecursive", "Delete recursive")
-        this.#containerContextDialog.addItem("newContainer", "New container")
+        this.#containerContextDialog.addItem("newContainer", "New container…")
+        this.#containerContextDialog.addItem("newResource", "New resource…")
         this.#containerContextDialog.addItem("upload", "Upload")
         this.#containerContextDialog.addItem("uploadVerbose", "Upload…")
         this.#containerContextDialog.addItem("grantAccess", "Grant access")
@@ -176,6 +177,10 @@ class AppElement extends HTMLBodyElement {
 
     get #uploadDialog() {
         return this.ownerDocument.getElementById("uploadDialog")
+    }
+
+    get #newResourceDialog() {
+        return this.ownerDocument.getElementById("newResourceDialog")
     }
 
     get #newContainerDialog() {
@@ -325,6 +330,17 @@ class AppElement extends HTMLBodyElement {
                     const clean = encodeURIComponent(newContainerName)
 
                     await this.#solid.postResource(e.detail.resourceUri, Ldp.BasicContainer, Mime.Turtle, clean)
+                    this.#container.refresh()
+                }
+
+                break
+
+            case "newResource":
+                const newResourceResponse = await this.#newResourceDialog.getModalValue()
+
+                if (newResourceResponse) {
+                    const resourceUri = `${e.detail.resourceUri}${newResourceResponse.name}`
+                    await this.#upload(resourceUri, newResourceResponse.source, newResourceResponse.mime)
                     this.#container.refresh()
                 }
 

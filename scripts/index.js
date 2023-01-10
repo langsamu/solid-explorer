@@ -1,5 +1,6 @@
 import "./elements/AppElement.js"
 import "./elements/UploadDialog.js"
+import "./elements/NewResourceDialog.js"
 import "./elements/AddressBarElement.js"
 import "./elements/CrumbTrailElement.js"
 import "./elements/TreeElement.js"
