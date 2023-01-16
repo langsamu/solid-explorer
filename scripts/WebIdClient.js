@@ -43,6 +43,9 @@ class Profile {
         for (const q of this.#dataset.match(null, Vocabulary.primaryTopic)) {
             return new Agent(q.object, this.#dataset, N3.DataFactory)
         }
+        for (const q of this.#dataset.match(null, Vocabulary.isPrimaryTopicOf)) {
+            return new Agent(q.subject, this.#dataset, N3.DataFactory)
+        }
     }
 }
 
@@ -70,6 +73,7 @@ class Agent extends GraphNode {
 
 class Vocabulary {
     static primaryTopic = N3.DataFactory.namedNode("http://xmlns.com/foaf/0.1/primaryTopic")
+    static isPrimaryTopicOf = N3.DataFactory.namedNode("http://xmlns.com/foaf/0.1/isPrimaryTopicOf")
     static oidcIssuer = N3.DataFactory.namedNode(Solid.OidcIssuer)
     static storage = N3.DataFactory.namedNode(Pim.Storage)
 }
