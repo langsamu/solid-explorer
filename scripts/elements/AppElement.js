@@ -6,9 +6,6 @@ import {SolidClient} from "../SolidClient.js"
 import {HttpHeader, Ldp, Mime} from "../../packages/common/Vocabulary.js"
 import {ResourceUri} from "../ResourceUri.js"
 import {OidcCredentialManager} from "../../packages/oidc/OidcCredentialManager.js"
-import {ReactiveAuthenticationClient} from "../ReactiveAuthenticationClient.js"
-import {UmaTokenProvider} from "../UmaTokenProvider.js"
-import {OidcTokenProvider} from "../../packages/oidc/OidcTokenProvider.js"
 import {ResourceSelectedEvent} from "../ResourceSelectedEvent.js"
 import {ResourceUriString} from "../ResourceUriStringEvent.js"
 import {ContentType} from "../../packages/common/ContentType.js"
@@ -29,15 +26,7 @@ class AppElement extends HTMLBodyElement {
         super()
 
         this.#oidc = new OidcCredentialManager
-        const authCache = new Map
-
-        const umaTokenProvider = new UmaTokenProvider(authCache)
-        const oidcTokenProvider = new OidcTokenProvider()
-
-        umaTokenProvider.addEventListener("needCredentials", async e => e.detail.resolve(await this.#oidc.getCredentials()))
-        oidcTokenProvider.addEventListener("needCredentials", async e => e.detail.resolve(await this.#oidc.getCredentials()))
-
-        this.#solid = new SolidClient(new ReactiveAuthenticationClient(authCache, [umaTokenProvider, oidcTokenProvider]))
+        this.#solid = new SolidClient()
     }
 
     connectedCallback() {
