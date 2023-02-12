@@ -1,8 +1,6 @@
 import {DPoP} from "../packages/oidc/DPoP.js"
+import {Dpop, HttpHeader, HttpStatus} from "../packages/common/Vocabulary.js"
 
-const AUTHORIZATION = "Authorization"
-const UNAUTHORIZED = 401;
-const WWW_AUTHENTICATE = "Www-Authenticate";
 const DEFAULT_AUTHENTICATION_MECHANISM = "Www-Bearer";
 
 export class ReactiveAuthenticationClient extends EventTarget {
@@ -31,6 +29,7 @@ export class ReactiveAuthenticationClient extends EventTarget {
      */
     async fetch(input, init) {
         this.dispatchEvent(new CustomEvent("fetching", {bubbles: true}))
+
         try {
             const request = new Request(input, init)
 
@@ -50,18 +49,20 @@ export class ReactiveAuthenticationClient extends EventTarget {
             }
 
             const originalResponse = await this.#underlyingFetch.call(undefined, request.clone())
-            if (originalResponse.status !== UNAUTHORIZED) {
+            if (originalResponse.status !== HttpStatus.Unauthorized) {
                 return originalResponse
             }
 
             // Extract challenge from unauthorized response.
             // In case there isn't one (or this header is not exposed to CORS) assume bearer authentication.
-            const challenge = originalResponse.headers.get(WWW_AUTHENTICATE) ?? DEFAULT_AUTHENTICATION_MECHANISM
+            const challenge = originalResponse.headers.get(HttpHeader.WwwAuthenticate) ?? DEFAULT_AUTHENTICATION_MECHANISM
 
             this.#challengeCache.set(request.url, challenge)
             const token = await this.#tokenProviders.find(provider => provider.matches(challenge)).getToken(challenge)
             const upgraded = await ReactiveAuthenticationClient.#upgrade(request, token)
+
             return await this.fetch(upgraded)
+
         } finally {
             this.dispatchEvent(new CustomEvent("fetched", {bubbles: true}))
         }
@@ -72,7 +73,7 @@ export class ReactiveAuthenticationClient extends EventTarget {
      * @return {boolean}
      */
     static #isAuthenticated(request) {
-        return request.headers.has(AUTHORIZATION)
+        return request.headers.has(HttpHeader.Authorization)
     }
 
     /**
@@ -82,8 +83,8 @@ export class ReactiveAuthenticationClient extends EventTarget {
      */
     static async #upgrade(request, token) {
         const upgraded = new Request(request)
-        upgraded.headers.set(AUTHORIZATION, `DPoP ${token.accessToken}`)
-        upgraded.headers.set("DPoP", await DPoP.proof(request.url, request.method, token.dpopKey))
+        upgraded.headers.set(HttpHeader.Authorization, `${Dpop.Header} ${token.accessToken}`)
+        upgraded.headers.set(Dpop.Header, await DPoP.proof(request.url, request.method, token.dpopKey))
 
         return upgraded
     }

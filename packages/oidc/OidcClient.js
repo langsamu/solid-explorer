@@ -94,6 +94,31 @@ export class OidcClient {
         return response.json()
     }
 
+    async refreshToken(refreshToken, clientId, clientSecret, dpopKey) {
+        const metadata = await this.#discover()
+        const tokenEndpoint = metadata[OauthMetadata.TokenEndpoint]
+        const dpopProof = await DPoP.proof(tokenEndpoint, HttpMethod.Post, dpopKey);
+
+        const init = {
+            method: HttpMethod.Post,
+            body: new URLSearchParams({
+                [Dpop.Header]: dpopProof,
+                [Oauth.ClientId]: clientId,
+                [Oauth.GrantType]: Oauth.RefreshToken,
+                [Oauth.RedirectUri]: this.#redirectUri,
+                [Oauth.RefreshToken]: refreshToken,
+            }),
+            headers: new Headers
+        }
+
+        if (clientSecret) {
+            init.headers.set(HttpHeader.Authorization, basic(clientId, clientSecret))
+        }
+
+        const response = await fetch(tokenEndpoint, init)
+        return response.json()
+    }
+
     async #discover() {
         if (!this.#metadataCache.has(this.#identityProvider)) {
             const response = await fetch(new URL(Oidc.Discovery, this.#identityProvider))
