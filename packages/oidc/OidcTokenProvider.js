@@ -1,5 +1,6 @@
 import {TokenProvider} from "../common/TokenProvider.js"
 import {DPopBoundAccessToken} from "../../scripts/DPopBoundAccessToken.js"
+import {Oauth} from "../common/Vocabulary.js"
 
 const oidcMatcher = /Bearer/
 
@@ -21,6 +22,6 @@ export class OidcTokenProvider extends TokenProvider {
     async getToken(challenge) {
         const credentials = await this.#oidc.getCredentials()
 
-        return new DPopBoundAccessToken(credentials.tokenResponse.access_token, credentials.dpopKey)
+        return new DPopBoundAccessToken(credentials.tokenResponse[Oauth.AccessToken], credentials.dpopKey)
     }
 }

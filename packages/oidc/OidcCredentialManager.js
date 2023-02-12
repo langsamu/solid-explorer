@@ -1,9 +1,15 @@
 import "./SolidOidcUi.js"
+import {OidcClient} from "./OidcClient.js"
+import {Oauth, Oidc, OidcRegistration, Pkce} from "../common/Vocabulary.js"
+import {PKCE} from "./PKCE.js"
 
 export class OidcCredentialManager {
+    static #registrationMinTtlMillis = 10 * 1000
+
     #credentials
     #gettingCredentials
     #ui
+    #clientCredentials
 
     addUi(container) {
         this.#ui = container.appendChild(container.ownerDocument.createElement("solid-oidc-ui"))
@@ -18,7 +24,7 @@ export class OidcCredentialManager {
         // See if we have cached credentials
         if (this.#credentials) {
             // Assuming ID token and access token have same expiry
-            const expiry = JSON.parse(atob(this.#credentials.tokenResponse.id_token.split(".")[1])).exp * 1000
+            const expiry = JSON.parse(atob(this.#credentials.tokenResponse[Oidc.IdToken].split(".")[1])).exp * 1000
 
             // Make sure there's at least ten seconds to go until token expires
             if (new Date(expiry) - Date.now() > 10000) {
@@ -34,54 +40,43 @@ export class OidcCredentialManager {
             return releaseLock()
         }
 
-        // These keys will be used
-        // (1) by an authN child window to wrap the symmetric key it uses to encrypt the OIDC response and
-        // (2) by this window to unwrap that symmetric key so we can decrypt the OIDC response.
-        const keyPair = await crypto.subtle.generateKey(
-            {
-                name: "RSA-OAEP",
-                modulusLength: 4096,
-                publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
-                hash: "SHA-256",
-            },
-            true,
-            ["wrapKey", "unwrapKey"]
-        )
+        const redirectUri = new URL("./authentication.html", new URL(location.pathname, location.origin))
+        const codeVerifier = PKCE.createVerifier()
+        const codeChallenge = await PKCE.createChallenge(codeVerifier);
+        const oidcClient = new OidcClient(idp, redirectUri);
+        let {client_id, client_secret} = await this.#register(oidcClient)
 
-        const key = btoa(JSON.stringify(await crypto.subtle.exportKey("jwk", keyPair.publicKey)))
-        const authenticationUrl = `./authentication.html?${new URLSearchParams({idp, key})}`;
-        const credentials = await this.#getOidcCredentialsFromAuthNWindow(authenticationUrl, keyPair.privateKey)
+        const authenticationUrl = `${redirectUri}?${new URLSearchParams({
+            idp,
+            [Oauth.ClientId]: client_id,
+            [Pkce.CodeChallenge]: codeChallenge
+        })}`
 
-        credentials.dpopKey = {
-            publicKey: await crypto.subtle.importKey("jwk", credentials.dpopKey.publicKey, {
-                name: "ECDSA",
-                namedCurve: "P-256"
-            }, true, []),
-            privateKey: await crypto.subtle.importKey("jwk", credentials.dpopKey.privateKey, {
-                name: "ECDSA",
-                namedCurve: "P-256"
-            }, false, ["sign"])
-        }
+        const code = await this.#getCodeFromAuthNWindow(authenticationUrl)
+        const dpopKey = await crypto.subtle.generateKey({name: "ECDSA", namedCurve: "P-256"}, true, ["sign"])
+        const tokenResponse = await oidcClient.exchangeToken(code, client_id, client_secret, dpopKey, codeVerifier)
+        const credentials = {dpopKey, tokenResponse}
 
         return releaseLock() || (this.#credentials = credentials)
     }
 
     clearCredentials() {
         this.#credentials = null
+        this.#clientCredentials = null
     }
 
     async getStorageFromWebId() {
         return this.#ui.getStorageFromWebId()
     }
 
-    async #getOidcCredentialsFromAuthNWindow(authenticationUrl, encryptionKey) {
+    async #getCodeFromAuthNWindow(authenticationUrl) {
         // Open the authN window and wait for it to post us a message with the encrypted OIDC token response
         return await new Promise(async resolve => {
             window.addEventListener("message", async e => {
                 // Notify that user interaction is no longer needed
                 this.#ui.gotInteraction()
 
-                resolve(await OidcCredentialManager.#decryptOidcTokenResponse(e.data, encryptionKey))
+                resolve(e.data)
             }, {once: true})
 
             const authenticationWindow = open(authenticationUrl)
@@ -93,24 +88,35 @@ export class OidcCredentialManager {
         })
     }
 
-    static async #decryptOidcTokenResponse(data, decryptionKey) {
-        // Get symmetric key from event data and unwrap using our own private key
-        const key = await crypto.subtle.unwrapKey(
-            "jwk",
-            data.key,
-            decryptionKey,
-            {name: "RSA-OAEP"},
-            data.algorithm,
-            false,
-            ["decrypt"])
+    async #register(oidcClient) {
+        if (!this.#clientCredentials) {
+            this.#clientCredentials = {
+                [Oauth.ClientId]: new URL("./id.jsonld", location)
+            }
 
-        // Decrypt response from event data using the unwrapped key it was encrypted with
-        const tokenResponseBytes = await crypto.subtle.decrypt(
-            data.algorithm,
-            key,
-            data.response)
+            // Use public client ID without secret by default but register client dynamically if on localhost.
+            if (["localhost", "127.0.0.1", "::1"].includes(location.hostname)) {
+                Object.assign(this.#clientCredentials, await oidcClient.register())
+            }
+        }
 
-        // Convert back from bytes to OIDC response JSON
-        return JSON.parse(new TextDecoder().decode(tokenResponseBytes))
+        if (expiresIn(this.#clientCredentials, OidcCredentialManager.#registrationMinTtlMillis)) {
+            this.#clientCredentials = null
+            return this.#register(oidcClient)
+        }
+
+        return this.#clientCredentials
     }
+}
+
+function expiresIn(registration, expectedTtlMillis) {
+    if (registration[OidcRegistration.ClientSecretExpiresAt] === 0) { // NSS says this
+        return false
+    }
+
+    const expiresAtMillis = registration[OidcRegistration.ClientSecretExpiresAt] * 1000
+    const expiresAt = new Date(expiresAtMillis)
+    const ttlMillis = expiresAt - Date.now()
+
+    return ttlMillis < expectedTtlMillis
 }

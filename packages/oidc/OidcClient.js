@@ -1,86 +1,87 @@
-import {HttpHeader, HttpMethod, Mime, Oidc, Solid} from "../common/Vocabulary.js"
+import {
+    Dpop,
+    HttpHeader,
+    HttpMethod,
+    Mime,
+    Oauth,
+    OauthMetadata,
+    Oidc,
+    OidcRegistration,
+    Pkce,
+    Solid
+} from "../common/Vocabulary.js"
 import {Cache} from "../common/Cache.js"
 import {basic} from "../common/Utils.js"
-import {PKCE} from "./PKCE.js"
 import {DPoP} from "./DPoP.js"
 
 export class OidcClient {
-    static #registrationMinTtlMillis = 10 * 1000
-
     #identityProvider
     #redirectUri
     #metadataCache
     #clientCache
-    #pkceVerifier
 
-    constructor(identityProvider, redirectUri, pkceVerifier) {
+    constructor(identityProvider, redirectUri) {
         this.#identityProvider = identityProvider
         this.#redirectUri = redirectUri
         this.#metadataCache = new Cache("oidc.metadata.cache")
         this.#clientCache = new Cache("oidc.client.cache")
-        this.#pkceVerifier = pkceVerifier
     }
 
     async register() {
-        if (!this.#clientCache.has(this.#identityProvider)) {
-            const disco = await this.#discover()
+        const metadata = await this.#discover()
+        const registrationEndpoint = metadata[OauthMetadata.RegistrationEndpoint]
 
-            const response = await fetch(disco.registration_endpoint, {
-                method: HttpMethod.Post,
-                headers: {
-                    [HttpHeader.ContentType]: Mime.Json
-                },
-                body: JSON.stringify({
-                    redirect_uris: [this.#redirectUri],
-                    client_name: "Solid Explorer",
-                    logo_uri: "https://langsamu.github.io/solid-explorer/logo.svg",
-                    client_uri: "https://github.com/langsamu/solid-explorer",
-                    policy_uri: "https://github.com/langsamu/solid-explorer/blob/main/data-policy.md"
-                }),
-                redirect: "manual" // NSS responds with 201
-            })
-            const oidcRegistration = await response.json()
-
-            this.#clientCache.set(this.#identityProvider, oidcRegistration)
-        }
-
-        const registration = this.#clientCache.get(this.#identityProvider)
-
-        if (expiresIn(registration, OidcClient.#registrationMinTtlMillis)) {
-            this.#clientCache.clear(this.#identityProvider)
-            return this.register()
-        }
-
-        return registration
-    }
-
-    async authorize(clientId) {
-        const disco = await this.#discover()
-
-        const authorizationRequest = new URLSearchParams({
-            scope: [Oidc.Scope, Solid.WebIdScope].join(" "),
-            response_type: Oidc.Code,
-            client_id: clientId,
-            redirect_uri: this.#redirectUri,
-            code_challenge: await PKCE.createChallenge(this.#pkceVerifier),
-            code_challenge_method: "S256",
+        const response = await fetch(registrationEndpoint, {
+            method: HttpMethod.Post,
+            headers: {
+                [HttpHeader.ContentType]: Mime.Json
+            },
+            body: JSON.stringify({
+                [OidcRegistration.RedirectUris]: [this.#redirectUri],
+                [OidcRegistration.GrantTypes]: [Oidc.AuthorizationCode, Oauth.RefreshToken],
+                [OidcRegistration.ClientName]: "Solid Explorer",
+                [OidcRegistration.LogoUri]: "https://langsamu.github.io/solid-explorer/logo.svg",
+                [OidcRegistration.ClientUri]: "https://github.com/langsamu/solid-explorer",
+                [OidcRegistration.PolicyUri]: "https://github.com/langsamu/solid-explorer/blob/main/data-policy.md"
+            }),
+            redirect: "manual" // NSS responds with 201
         })
 
-        const authorizationUrl = new URL(`?${authorizationRequest}`, disco.authorization_endpoint)
+        return await response.json()
+    }
+
+    async authorize(clientId, codeChallenge) {
+        const metadata = await this.#discover()
+        const authorizationEndpoint = metadata[OauthMetadata.AuthorizationEndpoint]
+
+        const authorizationRequest = new URLSearchParams({
+            [Oauth.ClientId]: clientId,
+            [Oauth.RedirectUri]: this.#redirectUri,
+            [Oauth.ResponseType]: Oidc.Code,
+            [Oauth.Scope]: [Oidc.Scope, Oidc.OfflineAccess, Solid.WebIdScope].join(" "),
+            [Oidc.Prompt]: Oidc.Consent,
+            [Pkce.CodeChallenge]: codeChallenge,
+            [Pkce.CodeChallengeMethod]: "S256",
+        })
+
+        const authorizationUrl = new URL(`?${authorizationRequest}`, authorizationEndpoint)
         location.assign(authorizationUrl)
     }
 
-    async exchangeToken(code, clientId, clientSecret, dpopKey) {
-        const disco = await this.#discover()
+    async exchangeToken(code, clientId, clientSecret, dpopKey, codeVerifier) {
+        const metadata = await this.#discover()
+        const tokenEndpoint = metadata[OauthMetadata.TokenEndpoint]
+        const dpopProof = await DPoP.proof(tokenEndpoint, HttpMethod.Post, dpopKey);
 
         const init = {
             method: HttpMethod.Post,
             body: new URLSearchParams({
-                grant_type: Oidc.AuthorizationCode,
-                client_id: clientId,
-                code,
-                redirect_uri: this.#redirectUri,
-                code_verifier: this.#pkceVerifier,
+                [Dpop.Header]: dpopProof,
+                [Oauth.ClientId]: clientId,
+                [Oauth.GrantType]: Oidc.AuthorizationCode,
+                [Oauth.RedirectUri]: this.#redirectUri,
+                [Oidc.Code]: code,
+                [Pkce.CodeVerifier]: codeVerifier,
             }),
             headers: new Headers
         }
@@ -89,9 +90,7 @@ export class OidcClient {
             init.headers.set(HttpHeader.Authorization, basic(clientId, clientSecret))
         }
 
-        init.headers.set("DPoP", await DPoP.proof(disco.token_endpoint, HttpMethod.Post, dpopKey))
-
-        const response = await fetch(disco.token_endpoint, init)
+        const response = await fetch(tokenEndpoint, init)
         return response.json()
     }
 
@@ -105,16 +104,4 @@ export class OidcClient {
 
         return this.#metadataCache.get(this.#identityProvider)
     }
-}
-
-function expiresIn(registration, expectedTtlMillis) {
-    if (registration.client_secret_expires_at === 0) { // NSS says this
-        return false
-    }
-
-    const expiresAtMillis = registration.client_secret_expires_at * 1000
-    const expiresAt = new Date(expiresAtMillis)
-    const ttlMillis = expiresAt - Date.now()
-
-    return ttlMillis < expectedTtlMillis
 }

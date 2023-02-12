@@ -10,7 +10,7 @@
   "redirect_uris": ["https://langsamu.github.io/solid-explorer/authentication.html"],
 
   "scope": "openid webid",
-  "grant_types": ["authorization_code"],
+  "grant_types": ["authorization_code", "offline_access"],
   "response_types": ["code"],
 
   "@context": "https://www.w3.org/ns/solid/oidc-context.jsonld"

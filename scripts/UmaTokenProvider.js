@@ -1,5 +1,6 @@
 import {TokenProvider} from "../packages/common/TokenProvider.js"
 import {UmaClient} from "./UmaClient.js"
+import {Oidc} from "../packages/common/Vocabulary.js"
 
 const umaMatcher = /UMA as_uri="([^"]+)", ticket="([^"]+)"/;
 
@@ -33,7 +34,7 @@ export class UmaTokenProvider extends TokenProvider {
         const [, asUri, ticket] = umaMatcher.exec(challenge)
         const umaClient = new UmaClient(asUri)
         const credentials = await this.#oidc.getCredentials()
-        const umaToken = await umaClient.exchangeTicket(ticket, credentials.tokenResponse.id_token, credentials.dpopKey)
+        const umaToken = await umaClient.exchangeTicket(ticket, credentials.tokenResponse[Oidc.IdToken], credentials.dpopKey)
         this.#cache.set(challenge, umaToken)
 
         return umaToken

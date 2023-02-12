@@ -1,4 +1,14 @@
-import {HttpHeader, HttpMethod, Mime, Oidc, Uma} from "../packages/common/Vocabulary.js"
+import {
+    Dpop,
+    HttpHeader,
+    HttpMethod,
+    HttpStatus,
+    Mime,
+    Oauth,
+    OauthMetadata,
+    Oidc,
+    Uma
+} from "../packages/common/Vocabulary.js"
 import {Cache} from "../packages/common/Cache.js"
 import {DPoP} from "../packages/oidc/DPoP.js"
 import {DPopBoundAccessToken} from "./DPopBoundAccessToken.js"
@@ -19,31 +29,35 @@ export class UmaClient {
      * @return {Promise<DPopBoundAccessToken>}
      */
     async exchangeTicket(ticket, idToken, dpopKey) {
-        const umaDiscovery = await this.discover()
+        const metadata = await this.discover()
+        const tokenEndpoint = metadata[OauthMetadata.TokenEndpoint]
+        const dpopProof = await DPoP.proof(tokenEndpoint, HttpMethod.Post, dpopKey);
 
-        const response = await fetch(umaDiscovery.token_endpoint, {
+        const response = await fetch(tokenEndpoint, {
             method: HttpMethod.Post,
             headers: {
-                [HttpHeader.ContentType]: Mime.Form,
+                [Dpop.Header]: dpopProof,
                 [HttpHeader.Accept]: Mime.Json,
-                "DPoP": await DPoP.proof(umaDiscovery.token_endpoint, HttpMethod.Post, dpopKey)
+                [HttpHeader.ContentType]: Mime.Form
             },
             body: new URLSearchParams({
-                ticket,
-                grant_type: Uma.TicketGrant,
-                claim_token: idToken,
-                claim_token_format: Oidc.IdToken
+                [Oauth.GrantType]: Uma.TicketGrant,
+                [Uma.ClaimToken]: idToken,
+                [Uma.ClaimTokenFormat]: Uma.IdToken,
+                [Uma.Ticket]: ticket
             })
         })
-        const umaToken = await response.json()
 
-        return new DPopBoundAccessToken(umaToken.access_token, dpopKey)
+        const umaResponse = await response.json()
+        const umaAccessToken = umaResponse[Oauth.AccessToken]
+
+        return new DPopBoundAccessToken(umaAccessToken, dpopKey)
     }
 
     static async parseUmaChallenge(input, init) {
         const response = await fetch(input, init)
 
-        if (response.ok || response.status !== 401) {
+        if (response.ok || response.status !== HttpStatus.Unauthorized) {
             return [response]
         }
 
