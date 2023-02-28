@@ -191,7 +191,7 @@ export class SolidClient extends EventTarget {
             return
         }
 
-        const uma = new UmaClient(umaServer)
+        const uma = new UmaClient(umaServer, new Map)
         const umaDisco = await uma.discover()
         const vcServer = umaDisco.verifiable_credential_issuer
 

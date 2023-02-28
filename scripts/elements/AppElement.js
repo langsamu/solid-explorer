@@ -29,7 +29,8 @@ class AppElement extends HTMLBodyElement {
         super()
 
         this.#oidc = new OidcCredentialManager
-        this.#solid = new SolidClient(new ReactiveAuthenticationClient([new UmaTokenProvider(this.#oidc), new OidcTokenProvider(this.#oidc)]))
+        const authCache = new Map
+        this.#solid = new SolidClient(new ReactiveAuthenticationClient(authCache, [new UmaTokenProvider(authCache), new OidcTokenProvider()]))
     }
 
     connectedCallback() {

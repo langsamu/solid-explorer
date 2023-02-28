@@ -6,13 +6,13 @@ const umaMatcher = /UMA as_uri="([^"]+)", ticket="([^"]+)"/;
 
 export class UmaTokenProvider extends TokenProvider {
     /** @type {Map<String, DPopBoundAccessToken>} */
-    #cache = new Map
+    #cache
     #oidc
 
-    constructor(oidc) {
+    constructor(oidc, cache) {
         super()
 
-        this.#oidc = oidc;
+        this.#cache = cache
     }
 
     /** @inheritDoc */
@@ -32,7 +32,7 @@ export class UmaTokenProvider extends TokenProvider {
         }
 
         const [, asUri, ticket] = umaMatcher.exec(challenge)
-        const umaClient = new UmaClient(asUri)
+        const umaClient = new UmaClient(asUri, this.#cache)
         const credentials = await this.#oidc.getCredentials()
         const umaToken = await umaClient.exchangeTicket(ticket, credentials.tokenResponse[Oidc.IdToken], credentials.dpopKey)
         this.#cache.set(challenge, umaToken)
