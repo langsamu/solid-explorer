@@ -30,7 +30,14 @@ class AppElement extends HTMLBodyElement {
 
         this.#oidc = new OidcCredentialManager
         const authCache = new Map
-        this.#solid = new SolidClient(new ReactiveAuthenticationClient(authCache, [new UmaTokenProvider(authCache), new OidcTokenProvider()]))
+
+        const umaTokenProvider = new UmaTokenProvider(authCache)
+        const oidcTokenProvider = new OidcTokenProvider()
+
+        umaTokenProvider.addEventListener("needCredentials", async e => e.detail.resolve(await this.#oidc.getCredentials()))
+        oidcTokenProvider.addEventListener("needCredentials", async e => e.detail.resolve(await this.#oidc.getCredentials()))
+
+        this.#solid = new SolidClient(new ReactiveAuthenticationClient(authCache, [umaTokenProvider, oidcTokenProvider]))
     }
 
     connectedCallback() {

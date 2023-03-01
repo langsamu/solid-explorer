@@ -6,7 +6,6 @@ import {
     Mime,
     Oauth,
     OauthMetadata,
-    Oidc,
     Uma
 } from "../packages/common/Vocabulary.js"
 import {DPoP} from "../packages/oidc/DPoP.js"
