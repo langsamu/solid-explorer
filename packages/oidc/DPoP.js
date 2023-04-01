@@ -1,33 +1,21 @@
+import {Dpop} from "../common/Vocabulary.js"
+import {JWT} from "./JWT.js"
+import {JWS} from "./JWS.js"
+
 export class DPoP {
-    static async proof(htu, htm, key) {
-        const iat = Math.floor(Date.now() / 1000)
-
-        const head = {
-            alg: "ES256",
-            typ: "dpop+jwt",
-            jwk: await crypto.subtle.exportKey("jwk", key.publicKey)
+    /**
+     * @param {string} httpTargetUri
+     * @param {string} httpMethod
+     * @param {CryptoKeyPair} key
+     * @return {Promise<string>}
+     */
+    static async proof(httpTargetUri, httpMethod, key) {
+        const claims = {
+            [Dpop.HttpMethod]: httpMethod,
+            [Dpop.HttpTargetUri]: httpTargetUri,
         }
 
-        const body = {
-            jti: DPoP.#base64UrlWithoutPadding(JSON.stringify(crypto.getRandomValues(new Uint8Array(32)))),
-            htm,
-            htu,
-            iat,
-            exp: iat + (60 * 5)
-        }
-
-        const headAndBody = [DPoP.#base64UrlWithoutPadding(JSON.stringify(head)), DPoP.#base64UrlWithoutPadding(JSON.stringify(body))].join(".")
-        const algorithm = {name: "ECDSA", hash: "SHA-256"}
-        const signed = await crypto.subtle.sign(algorithm, key.privateKey, new TextEncoder().encode(headAndBody))
-        const signedString = DPoP.#base64UrlWithoutPadding(String.fromCharCode(...new Uint8Array(signed)))
-
-        return [headAndBody, signedString].join(".")
-    }
-
-    static #base64UrlWithoutPadding(str) {
-        return btoa(str)
-            .replace(/=+$/, "")
-            .replace(/\+/g, "-")
-            .replace(/\//g, "_")
+        const jwt = new JWT(Dpop.MediaType, claims)
+        return JWS.sign(jwt, key)
     }
 }

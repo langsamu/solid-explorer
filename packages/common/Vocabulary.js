@@ -1,5 +1,9 @@
 export const Dpop = {
     Header: "DPoP",
+    HttpMethod: "htm",
+    HttpTargetUri: "htu",
+    MediaType: "dpop+jwt",
+    Scheme: "DPoP",
 }
 
 export const Hydra = {
@@ -35,6 +39,22 @@ export const JsonLd = {
     Id: "@id",
     Type: "@type",
     Value: "@value"
+}
+
+export const Jwa = {
+    ECDSAUsingP256AndSha256: "ES256",
+}
+
+export const Jwt = {
+    ExpirationTime: "exp",
+    IssuedAt: "iat",
+    JwtId: "jti",
+}
+
+export const Jws = {
+    Algorithm: "alg",
+    Type: "typ",
+    JsonWebKey: "jwk",
 }
 
 export const Ldp = {
@@ -135,4 +155,11 @@ export const Uma = {
     Ticket: "ticket",
     TicketParser: /as_uri="([^"]+)", ticket="([^"]+)"/,
     TicketGrant: "urn:ietf:params:oauth:grant-type:uma-ticket"
+}
+
+export const WebCrypto = {
+    AlgorithmName: "name",
+    HashAlgorithm: "hash",
+    ECDSA: "ECDSA",
+    SHA256: "SHA-256",
 }
