@@ -11,7 +11,7 @@ export class TokenProvider extends EventTarget {
     /**
      * @abstract
      * @param challenge {string}
-     * @return {Promise<DPopBoundAccessToken>}
+     * @return {Promise<AccessToken>}
      */
     async getToken(challenge) {
         throw new Error("Not implemented")

@@ -1,5 +1,6 @@
-export class DPopBoundAccessToken {
-    #accessToken
+import {AccessToken} from "./AccessToken.js"
+
+export class DPopBoundAccessToken extends AccessToken {
     #dpopKey
 
     /**
@@ -7,17 +8,13 @@ export class DPopBoundAccessToken {
      * @param {CryptoKeyPair} dpopKey
      */
     constructor(accessToken, dpopKey) {
-        this.#accessToken = accessToken
-        this.#dpopKey = dpopKey
-    }
+        super(accessToken)
 
-    /** @type {string} */
-    get accessToken() {
-        return this.#accessToken;
+        this.#dpopKey = dpopKey
     }
 
     /** @type {CryptoKeyPair} */
     get dpopKey() {
-        return this.#dpopKey;
+        return this.#dpopKey
     }
 }

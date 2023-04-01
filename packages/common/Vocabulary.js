@@ -89,6 +89,7 @@ export const Mime = {
 }
 
 export const Oauth = {
+    Bearer: "Bearer",
     AccessToken: "access_token",
     ClientId: "client_id",
     GrantType: "grant_type",
