@@ -2,6 +2,7 @@ import {Jws, Jwt} from "../common/Vocabulary.js"
 import {JWS} from "./JWS.js"
 
 export class JWT {
+    // TODO: DPoP proof JWT should be short lived
     static #defaultExpiry = 60 * 5
     #header
     #body

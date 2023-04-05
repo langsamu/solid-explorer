@@ -1,20 +1,20 @@
 import {TokenProvider} from "../common/TokenProvider.js"
-import {AccessToken} from "../../scripts/AccessToken.js"
+import {DPopBoundAccessToken} from "../../scripts/DPopBoundAccessToken.js"
 import {Oidc} from "../common/Vocabulary.js"
 
-const oidcMatcher = /Bearer/
+const dpopMatcher = /DPoP/
 
-export class OidcTokenProvider extends TokenProvider {
+export class DPoPTokenProvider extends TokenProvider {
     /** @inheritDoc */
     matches(challenge) {
-        return oidcMatcher.test(challenge)
+        return dpopMatcher.test(challenge)
     }
 
     /** @inheritDoc */
     async getToken(challenge) {
         const credentials = await this.#getCredentials()
 
-        return new AccessToken(credentials.tokenResponse[Oidc.IdToken])
+        return new DPopBoundAccessToken(credentials.tokenResponse[Oidc.IdToken], credentials.dpopKey)
     }
 
     async #getCredentials() {

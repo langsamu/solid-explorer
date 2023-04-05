@@ -4,6 +4,7 @@ export const Dpop = {
     HttpTargetUri: "htu",
     MediaType: "dpop+jwt",
     Scheme: "DPoP",
+    SigningAlgorithmValuesSupported: "dpop_signing_alg_values_supported",
 }
 
 export const Hydra = {

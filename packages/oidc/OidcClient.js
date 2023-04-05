@@ -66,12 +66,10 @@ export class OidcClient {
     async exchangeToken(code, clientId, clientSecret, dpopKey, codeVerifier) {
         const metadata = await this.#discover()
         const tokenEndpoint = metadata[OauthMetadata.TokenEndpoint]
-        const dpopProof = await DPoP.proof(tokenEndpoint, HttpMethod.Post, dpopKey);
 
         const init = {
             method: HttpMethod.Post,
             body: new URLSearchParams({
-                [Dpop.Header]: dpopProof,
                 [Oauth.ClientId]: clientId,
                 [Oauth.GrantType]: Oidc.AuthorizationCode,
                 [Oauth.RedirectUri]: this.#redirectUri,
@@ -79,6 +77,12 @@ export class OidcClient {
                 [Pkce.CodeVerifier]: codeVerifier,
             }),
             headers: new Headers
+        }
+
+        const dpopSupported = metadata[Dpop.SigningAlgorithmValuesSupported]
+        if (dpopSupported) {
+            const dpopProof = await DPoP.proof(tokenEndpoint, HttpMethod.Post, dpopKey);
+            init.headers.set(Dpop.Header, dpopProof)
         }
 
         if (clientSecret) {

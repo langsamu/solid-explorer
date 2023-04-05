@@ -29,6 +29,7 @@ export class UmaClient {
     async exchangeTicket(ticket, idToken, dpopKey) {
         const metadata = await this.discover()
         const tokenEndpoint = metadata[OauthMetadata.TokenEndpoint]
+        // TODO: Do like Oidc client and only send dpop if advertised in disco
         const dpopProof = await DPoP.proof(tokenEndpoint, HttpMethod.Post, dpopKey);
 
         const response = await fetch(tokenEndpoint, {
