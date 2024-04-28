@@ -6,8 +6,20 @@ import {ResourceUri} from "./ResourceUri.js"
 import {GraphNode} from "../packages/wrap/GraphNode.js"
 
 export class SolidClient extends EventTarget {
+    /** @type {ReactiveAuthenticationClient} */
+    #authenticationClient
+
+    constructor(authenticationClient) {
+        super()
+
+        this.#authenticationClient = authenticationClient
+
+        this.#authenticationClient.addEventListener("fetching", e => this.dispatchEvent(new CustomEvent("fetching", {bubbles: true})))
+        this.#authenticationClient.addEventListener("fetched", e => this.dispatchEvent(new CustomEvent("fetched", {bubbles: true})))
+    }
+
     async getAcrUri(resourceUri) {
-        const response = await fetch(resourceUri, {
+        const response = await this.#authenticationClient.fetch(resourceUri, {
             cache: "no-store",
             method: HttpMethod.Head
         })
@@ -21,7 +33,7 @@ export class SolidClient extends EventTarget {
             method: HttpMethod.Get
         }
 
-        return await fetch(resourceUri, init)
+        return await this.#authenticationClient.fetch(resourceUri, init)
     }
 
     async deleteResource(resourceUri) {
@@ -30,7 +42,7 @@ export class SolidClient extends EventTarget {
             method: HttpMethod.Delete
         }
 
-        return await fetch(resourceUri, init)
+        return await this.#authenticationClient.fetch(resourceUri, init)
     }
 
     async getChildren(resourceUri) {
@@ -50,7 +62,7 @@ export class SolidClient extends EventTarget {
             }
         }
 
-        const resourceResponse = await fetch(resourceUri, init)
+        const resourceResponse = await this.#authenticationClient.fetch(resourceUri, init)
 
         const resourceText = await resourceResponse.text()
         const dataset = new N3.Store(new N3.Parser({baseIRI: resourceUri.toString()}).parse(resourceText))
@@ -82,7 +94,7 @@ export class SolidClient extends EventTarget {
             method: HttpMethod.Head
         }
 
-        const resourceResponse = await fetch(resourceUri, init)
+        const resourceResponse = await this.#authenticationClient.fetch(resourceUri, init)
         const links = resourceResponse.headers.get(HttpHeader.Link)
 
         if (links.includes('<http://www.w3.org/ns/pim/space#Storage>; rel="type"')) {
@@ -102,14 +114,14 @@ export class SolidClient extends EventTarget {
             method: HttpMethod.Head
         }
 
-        const resourceResponse = await fetch(resourceUri, init)
+        const resourceResponse = await this.#authenticationClient.fetch(resourceUri, init)
         const links = resourceResponse.headers.get(HttpHeader.Link)
 
         return links.includes('<http://www.w3.org/ns/pim/space#Storage>; rel="type"')
     }
 
     async getAcr(acrUri, accessToken) {
-        const acrResponse = await fetch(acrUri, {
+        const acrResponse = await this.#authenticationClient.fetch(acrUri, {
             cache: "no-store",
             headers: {
                 [HttpHeader.Accept]: Mime.Turtle,
@@ -133,7 +145,7 @@ export class SolidClient extends EventTarget {
             }
         }))
 
-        await fetch(acrUri, {
+        await this.#authenticationClient.fetch(acrUri, {
             cache: "no-store",
             method: HttpMethod.Put,
             headers: {
@@ -155,7 +167,7 @@ export class SolidClient extends EventTarget {
             body
         }
 
-        return await fetch(resourceUri, init)
+        return await this.#authenticationClient.fetch(resourceUri, init)
     }
 
     async postResource(resourceUri, sourceType, contentType, slug) {
@@ -169,7 +181,7 @@ export class SolidClient extends EventTarget {
             }
         }
 
-        return await fetch(resourceUri, init)
+        return await this.#authenticationClient.fetch(resourceUri, init)
     }
 
     async grantAccess(resourceUri, isProvidedTo, mode) {
@@ -205,7 +217,7 @@ export class SolidClient extends EventTarget {
                 }
             }
         }
-        const accessGrantResponse = await fetch(issueEndpoint, {
+        const accessGrantResponse = await this.#authenticationClient.fetch(issueEndpoint, {
             method: HttpMethod.Post,
             headers: {
                 [HttpHeader.ContentType]: Mime.Json

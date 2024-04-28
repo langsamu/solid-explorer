@@ -4,7 +4,7 @@ import {DPopBoundAccessToken} from "./DPopBoundAccessToken.js"
 
 const DEFAULT_AUTHENTICATION_MECHANISM = "Bearer"
 
-export class ReactiveAuthenticationClient {
+export class ReactiveAuthenticationClient extends EventTarget {
     /** @type {TokenProvider[]} */
     #tokenProviders
 
@@ -19,6 +19,8 @@ export class ReactiveAuthenticationClient {
      * @param {function(input: RequestInfo | URL, init?: RequestInit): Promise<Response>} fetch
      */
     constructor(cache, tokenProviders, fetch) {
+        super()
+
         this.#challengeCache = cache
         this.#tokenProviders = tokenProviders
         this.#underlyingFetch = fetch
