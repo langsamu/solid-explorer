@@ -9,21 +9,22 @@ self.addEventListener("fetch", onFetch)
 
 const session = new Map
 
-async function onInstall(e) {
+function onInstall(e) {
     console.log("sw.onInstall", e)
 
     e.waitUntil(self.skipWaiting())
 }
 
-async function onActivate(e) {
+function onActivate(e) {
     console.log("sw.onActivate", e)
-    await self.clients.claim()
+
+    e.waitUntil(self.clients.claim())
 }
 
 function onFetch(e) {
     console.debug("sw.onFetch", e)
 
-    if (!e.clientId) {
+    if (e.request.destination !== "") {
         console.debug("Ignore navigation")
         return
     }
