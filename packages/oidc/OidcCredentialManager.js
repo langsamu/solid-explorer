@@ -65,7 +65,7 @@ export class OidcCredentialManager {
     }
 
     async #authorize(authenticationUrl) {
-        // Open the authN window and wait for it to post us a message with the encrypted OIDC token response
+        // Open the authN window and wait for it to post us a message with the authorization code
         return await new Promise(async resolve => {
             window.addEventListener("message", async e => {
                 // Notify that user interaction is no longer needed
