@@ -1,7 +1,7 @@
 import {HttpHeader, Mime, Pim, Solid} from "../packages/common/Vocabulary.js"
 import {Cache} from "../packages/common/Cache.js"
 import {DatasetWrapper, NamedNodeAs, NamedNodeFrom, SetFrom, TermWrapper} from "@rdfjs/wrapper"
-import "n3"
+import {DataFactory, Parser, Store} from "n3"
 
 export class WebIdClient {
     static #profileCache = new Cache("webid.profile.cache")
@@ -24,8 +24,8 @@ export class WebIdClient {
         }
 
         const rdf = this.#profileCache.get(webId)
-        const dataset = new N3.Store(new N3.Parser().parse(rdf))
-        return new Profile(dataset, N3.DataFactory)
+        const dataset = new Store(new Parser().parse(rdf))
+        return new Profile(dataset, DataFactory)
     }
 }
 

@@ -1,4 +1,4 @@
-import "n3"
+import {DataFactory, Parser, Store, Writer} from "n3"
 import {UmaClient} from "./UmaClient.js"
 import {HttpHeader, HttpMethod, Ldp, Mime, Solid} from "../packages/common/Vocabulary.js"
 import {bearer} from "../packages/common/Utils.js"
@@ -53,9 +53,9 @@ export class SolidClient extends EventTarget {
         const resourceResponse = await fetch(resourceUri, init)
 
         const resourceText = await resourceResponse.text()
-        const dataset = new N3.Store(new N3.Parser({baseIRI: resourceUri.toString()}).parse(resourceText))
+        const dataset = new Store(new Parser({baseIRI: resourceUri.toString()}).parse(resourceText))
         const root = resourceUri.isRoot ? resourceUri : resourceUri.root
-        const children = new ContainerGraph(dataset, N3.DataFactory).resource?.contains || []
+        const children = new ContainerGraph(dataset, DataFactory).resource?.contains || []
         return [...children].map(child => new ResourceUri(child, undefined, root))
     }
 
@@ -120,12 +120,12 @@ export class SolidClient extends EventTarget {
         })
         const acrBody = await acrResponse.text()
 
-        return new N3.Store(new N3.Parser().parse(acrBody))
+        return new Store(new Parser().parse(acrBody))
     }
 
     async setAcr(acrUri, dataset, accessToken) {
-        const writer = new N3.Writer()
-        dataset.forEach(writer.addQuad.bind(writer))
+        const writer = new Writer()
+        writer.addQuads([...dataset])
 
         const acpRdf = await new Promise((resolve, reject) => writer.end((error, result) => {
             if (error) {
