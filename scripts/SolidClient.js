@@ -3,7 +3,7 @@ import {UmaClient} from "./UmaClient.js"
 import {HttpHeader, HttpMethod, Ldp, Mime, Solid} from "../packages/common/Vocabulary.js"
 import {bearer} from "../packages/common/Utils.js"
 import {ResourceUri} from "./ResourceUri.js"
-import {GraphNode} from "../packages/wrap/GraphNode.js"
+import {DatasetWrapper, NamedNodeAs, NamedNodeFrom, SetFrom, TermWrapper} from "https://unpkg.com/@rdfjs/wrapper@0.34.0/dist/mod.js"
 
 export class SolidClient extends EventTarget {
     async getAcrUri(resourceUri) {
@@ -54,7 +54,9 @@ export class SolidClient extends EventTarget {
 
         const resourceText = await resourceResponse.text()
         const dataset = new N3.Store(new N3.Parser({baseIRI: resourceUri.toString()}).parse(resourceText))
-        return new ContainerGraph(dataset, resourceUri).resource?.contains || []
+        const root = resourceUri.isRoot ? resourceUri : resourceUri.root
+        const children = new ContainerGraph(dataset, N3.DataFactory).resource?.contains || []
+        return [...children].map(child => new ResourceUri(child, undefined, root))
     }
 
     async getDescendantsDepthFirst(resourceUri) {
@@ -217,46 +219,22 @@ export class SolidClient extends EventTarget {
     }
 }
 
-class ContainerGraph {
-    #dataset
-    #resourceUri
-
-    constructor(dataset, resourceUri) {
-        this.#dataset = dataset
-        this.#resourceUri = resourceUri;
-    }
-
+class ContainerGraph extends DatasetWrapper {
     /**
      * @return {Resource}
      */
     get resource() {
-        for (const q of this.#dataset.match(null, Vocabulary.contains)) {
-            return new Resource(this.#resourceUri, q.subject, this.#dataset, N3.DataFactory)
+        for (const resource of this.subjectsOf(Ldp.Contains, Resource)) {
+            return resource
         }
     }
 }
 
-class Resource extends GraphNode {
-    #resourceUri
-
-    constructor(resourceUri, subject, dataset, dataFactory) {
-        super(subject, dataset, dataFactory)
-
-        this.#resourceUri = resourceUri;
-    }
-
+class Resource extends TermWrapper {
     /**
-     * @return {Set<string>}
+     * @return {Set<URL>}
      */
     get contains() {
-        const root = this.#resourceUri.isRoot ? this.#resourceUri : this.#resourceUri.root;
-        return this.live(
-            Vocabulary.contains,
-            N3.DataFactory.namedNode,
-            t => new ResourceUri(t.value, undefined, root))
+        return SetFrom.subjectPredicate(this, Ldp.Contains, NamedNodeAs.url, NamedNodeFrom.url)
     }
-}
-
-class Vocabulary {
-    static contains = N3.DataFactory.namedNode(Ldp.Contains)
 }
