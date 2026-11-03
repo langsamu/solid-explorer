@@ -1,9 +1,9 @@
-import "../packages/unpkg.com/n3@1.16.2/browser/n3.min.js"
+import "n3"
 import {UmaClient} from "./UmaClient.js"
 import {HttpHeader, HttpMethod, Ldp, Mime, Solid} from "../packages/common/Vocabulary.js"
 import {bearer} from "../packages/common/Utils.js"
 import {ResourceUri} from "./ResourceUri.js"
-import {DatasetWrapper, NamedNodeAs, NamedNodeFrom, SetFrom, TermWrapper} from "https://unpkg.com/@rdfjs/wrapper@0.34.0/dist/mod.js"
+import {DatasetWrapper, NamedNodeAs, NamedNodeFrom, SetFrom, TermWrapper} from "@rdfjs/wrapper"
 
 export class SolidClient extends EventTarget {
     async getAcrUri(resourceUri) {

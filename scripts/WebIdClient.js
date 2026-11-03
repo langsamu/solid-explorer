@@ -1,7 +1,7 @@
 import {HttpHeader, Mime, Pim, Solid} from "../packages/common/Vocabulary.js"
 import {Cache} from "../packages/common/Cache.js"
-import {DatasetWrapper, NamedNodeAs, NamedNodeFrom, SetFrom, TermWrapper} from "https://unpkg.com/@rdfjs/wrapper@0.34.0/dist/mod.js"
-import "../packages/unpkg.com/n3@1.16.2/browser/n3.min.js"
+import {DatasetWrapper, NamedNodeAs, NamedNodeFrom, SetFrom, TermWrapper} from "@rdfjs/wrapper"
+import "n3"
 
 export class WebIdClient {
     static #profileCache = new Cache("webid.profile.cache")
