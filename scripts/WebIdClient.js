@@ -1,4 +1,4 @@
-import {HttpHeader, Mime, Pim, Solid} from "../packages/common/Vocabulary.js"
+import {HttpHeader, Mime, Pim} from "../packages/common/Vocabulary.js"
 import {Cache} from "../packages/common/Cache.js"
 import {DatasetWrapper, NamedNodeAs, NamedNodeFrom, SetFrom, TermWrapper} from "@rdfjs/wrapper"
 import {DataFactory, Parser, Store} from "n3"
@@ -44,13 +44,6 @@ class Profile extends DatasetWrapper {
 }
 
 class Agent extends TermWrapper {
-    /**
-     * @return {Set<string>}
-     */
-    get issuer() {
-        return SetFrom.subjectPredicate(this, Solid.OidcIssuer, NamedNodeAs.string, NamedNodeFrom.string)
-    }
-
     /**
      * @return {Set<string>}
      */

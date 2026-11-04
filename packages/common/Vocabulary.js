@@ -1,12 +1,3 @@
-export const Dpop = {
-    Header: "DPoP",
-    HttpMethod: "htm",
-    HttpTargetUri: "htu",
-    MediaType: "dpop+jwt",
-    Scheme: "DPoP",
-    SigningAlgorithmValuesSupported: "dpop_signing_alg_values_supported",
-}
-
 export const Hydra = {
     Next: "http://www.w3.org/ns/hydra/core#next",
     Previous: "http://www.w3.org/ns/hydra/core#previous"
@@ -14,12 +5,10 @@ export const Hydra = {
 
 export const HttpHeader = {
     Accept: "Accept",
-    Authorization: "Authorization",
     ContentType: "Content-Type",
     Link: "Link",
     Location: "Location",
     Slug: "Slug",
-    WwwAuthenticate: "WWW-authenticate",
 }
 
 export const HttpMethod = {
@@ -31,31 +20,11 @@ export const HttpMethod = {
     Put: "PUT",
 }
 
-export const HttpStatus = {
-    Unauthorized: 401
-}
-
 export const JsonLd = {
     Graph: "@graph",
     Id: "@id",
     Type: "@type",
     Value: "@value"
-}
-
-export const Jwa = {
-    ECDSAUsingP256AndSha256: "ES256",
-}
-
-export const Jwt = {
-    ExpirationTime: "exp",
-    IssuedAt: "iat",
-    JwtId: "jti",
-}
-
-export const Jws = {
-    Algorithm: "alg",
-    Type: "typ",
-    JsonWebKey: "jwk",
 }
 
 export const Ldp = {
@@ -89,52 +58,8 @@ export const Mime = {
     Xml: "text/xml",
 }
 
-export const Oauth = {
-    Bearer: "Bearer",
-    AccessToken: "access_token",
-    ClientId: "client_id",
-    GrantType: "grant_type",
-    RedirectUri: "redirect_uri",
-    RefreshToken: "refresh_token",
-    ResponseType: "response_type",
-    Scope: "scope",
-}
-
-export const OauthMetadata = {
-    AuthorizationEndpoint: "authorization_endpoint",
-    TokenEndpoint: "token_endpoint",
-    RegistrationEndpoint: "registration_endpoint",
-}
-
-export const Oidc = {
-    AuthorizationCode: "authorization_code",
-    Code: "code",
-    Consent: "consent",
-    Discovery: ".well-known/openid-configuration",
-    IdToken: "id_token",
-    OfflineAccess: "offline_access",
-    Prompt: "prompt",
-    Scope: "openid",
-}
-
-export const OidcRegistration = {
-    ClientName: "client_name",
-    ClientSecretExpiresAt: "client_secret_expires_at",
-    ClientUri: "client_uri",
-    GrantTypes: "grant_types",
-    LogoUri: "logo_uri",
-    RedirectUris: "redirect_uris",
-    PolicyUri: "policy_uri",
-}
-
 export const Pim = {
     Storage: "http://www.w3.org/ns/pim/space#storage"
-}
-
-export const Pkce = {
-    CodeChallenge: "code_challenge",
-    CodeChallengeMethod: "code_challenge_method",
-    CodeVerifier: "code_verifier"
 }
 
 export const Rdf = {
@@ -144,14 +69,5 @@ export const Rdf = {
 }
 
 export const Solid = {
-    WebIdScope: "webid",
-    OidcIssuer: "http://www.w3.org/ns/solid/terms#oidcIssuer",
     AclLinkHeaderParser: /[^<]+(?=>; rel="acl")/,
-}
-
-export const WebCrypto = {
-    AlgorithmName: "name",
-    HashAlgorithm: "hash",
-    ECDSA: "ECDSA",
-    SHA256: "SHA-256",
 }

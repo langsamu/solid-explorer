@@ -1,6 +1,5 @@
-import {DataFactory, Parser, Store, Writer} from "n3"
+import {DataFactory, Parser, Store} from "n3"
 import {HttpHeader, HttpMethod, Ldp, Mime, Solid} from "../packages/common/Vocabulary.js"
-import {bearer} from "../packages/common/Utils.js"
 import {ResourceUri} from "./ResourceUri.js"
 import {DatasetWrapper, NamedNodeAs, NamedNodeFrom, SetFrom, TermWrapper} from "@rdfjs/wrapper"
 
@@ -114,42 +113,6 @@ export class SolidClient extends EventTarget {
         const links = resourceResponse.headers.get(HttpHeader.Link)
 
         return links.includes('<http://www.w3.org/ns/pim/space#Storage>; rel="type"')
-    }
-
-    async getAcr(acrUri, accessToken) {
-        const acrResponse = await this.#fetch(acrUri, {
-            cache: "no-store",
-            headers: {
-                [HttpHeader.Accept]: Mime.Turtle,
-                [HttpHeader.Authorization]: bearer(accessToken)
-            }
-        })
-        const acrBody = await acrResponse.text()
-
-        return new Store(new Parser().parse(acrBody))
-    }
-
-    async setAcr(acrUri, dataset, accessToken) {
-        const writer = new Writer()
-        writer.addQuads([...dataset])
-
-        const acpRdf = await new Promise((resolve, reject) => writer.end((error, result) => {
-            if (error) {
-                reject(error)
-            } else {
-                resolve(result)
-            }
-        }))
-
-        await this.#fetch(acrUri, {
-            cache: "no-store",
-            method: HttpMethod.Put,
-            headers: {
-                [HttpHeader.ContentType]: Mime.Turtle,
-                [HttpHeader.Authorization]: bearer(accessToken)
-            },
-            body: acpRdf
-        })
     }
 
     async putResource(resourceUri, sourceType, contentType, body) {
