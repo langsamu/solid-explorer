@@ -4,13 +4,12 @@ import "../../packages/webid/SolidWebIdUi.js"
 import {SolidClient} from "../SolidClient.js"
 import {HttpHeader, Ldp, Mime} from "../../packages/common/Vocabulary.js"
 import {ResourceUri} from "../ResourceUri.js"
-import {OidcCredentialManager} from "../../packages/oidc/OidcCredentialManager.js"
+import {reactiveFetch} from "../reactiveFetch.js"
 import {ResourceSelectedEvent} from "../ResourceSelectedEvent.js"
 import {ResourceUriString} from "../ResourceUriStringEvent.js"
 import {ContentType} from "../../packages/common/ContentType.js"
 
 class AppElement extends HTMLBodyElement {
-    #oidc
     #webId
     #containerContextDialog
     #resourceContextDialog
@@ -23,14 +22,12 @@ class AppElement extends HTMLBodyElement {
     constructor() {
         super()
 
-        this.#oidc = new OidcCredentialManager
-        this.#solid = new SolidClient(fetch.bind(globalThis))
+        this.#solid = new SolidClient(reactiveFetch)
     }
 
     connectedCallback() {
-        this.#oidc.addUi(this)
         this.#webId = this.appendChild(this.ownerDocument.createElement("solid-webid-ui"))
-        this.#webId.fetch = fetch.bind(globalThis)
+        this.#webId.fetch = reactiveFetch
         this.#buildUi()
         this.#wireHandlers()
     }
@@ -68,7 +65,7 @@ class AppElement extends HTMLBodyElement {
         this.#fileContextDialog = this.ownerDocument.createElement("dialog", {is: "solid-context-dialog"})
         this.#fileContextDialog.dataset.title = "App operations"
         this.#fileContextDialog.addItem("openNew", "Open new window")
-        this.#fileContextDialog.addItem("clearCredentials", "Clear credentials")
+        this.#fileContextDialog.addItem("clearStorage", "Clear storage")
         this.appendChild(this.#fileContextDialog)
 
         this.#gettingStartedDialog = this.ownerDocument.createElement("dialog", {is: "solid-ok-dialog"})
@@ -373,8 +370,7 @@ class AppElement extends HTMLBodyElement {
                 await this.#getSolidResourceUriFromWebId()
                 break
 
-            case "clearCredentials":
-                this.#oidc.clearCredentials()
+            case "clearStorage":
                 localStorage.clear()
 
                 break
