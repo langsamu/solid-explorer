@@ -1,10 +1,21 @@
 import {ResourceSelectedEvent} from "../ResourceSelectedEvent.js"
 
 export class CrumbTrailElement extends HTMLUListElement {
-    constructor() {
-        super()
+    #abortController
 
-        this.ownerDocument.addEventListener(ResourceSelectedEvent.TYPE, this.#onResourceSelected.bind(this), true)
+    connectedCallback() {
+        this.#abortController = new AbortController()
+        const {signal} = this.#abortController
+
+        this.ownerDocument.addEventListener(ResourceSelectedEvent.TYPE, this.#onResourceSelected.bind(this), {capture: true, signal})
+    }
+
+    disconnectedCallback() {
+        this.#abortController?.abort()
+    }
+
+    #onCrumbClick(e) {
+        this.dispatchEvent(new ResourceSelectedEvent(e.target.xx))
     }
 
     /**
@@ -29,7 +40,7 @@ export class CrumbTrailElement extends HTMLUListElement {
             button.innerText = parent.isRoot ? "root" : parent.name
             button.xx = parent
 
-            button.addEventListener("click", e => this.dispatchEvent(new ResourceSelectedEvent(e.target.xx)))
+            button.addEventListener("click", this.#onCrumbClick.bind(this))
 
             li.appendChild(button)
             this.prepend(li)

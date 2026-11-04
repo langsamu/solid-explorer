@@ -5,13 +5,25 @@ class AddressBarElement extends HTMLFormElement {
     /** @type {ResourceUri} */
     #resourceUri
 
+    #abortController
+
     constructor() {
         super()
 
-        this.ownerDocument.addEventListener(ResourceSelectedEvent.TYPE, this.#onResourceSelected.bind(this), true)
         this.addEventListener("submit", this.#onSubmit.bind(this))
         this.addEventListener("focus", this.#onFocus.bind(this))
         this.addEventListener("input", this.#onInput.bind(this))
+    }
+
+    connectedCallback() {
+        this.#abortController = new AbortController()
+        const {signal} = this.#abortController
+
+        this.ownerDocument.addEventListener(ResourceSelectedEvent.TYPE, this.#onResourceSelected.bind(this), {capture: true, signal})
+    }
+
+    disconnectedCallback() {
+        this.#abortController?.abort()
     }
 
     get #input() {

@@ -4,15 +4,27 @@ export class TreeElement extends HTMLDetailsElement {
     /** @type {ResourceUri} */
     #resourceUri
 
+    #abortController
+
     constructor() {
         super()
 
-        this.ownerDocument.addEventListener(ResourceSelectedEvent.TYPE, this.#onResourceSelected.bind(this), true)
-        this.ownerDocument.addEventListener("xxx", this.#onResourceSelected.bind(this), true)
         this.addEventListener("toggle", this.#onToggle.bind(this))
         this.#summarySpan.addEventListener("click", this.#onSummarySpanClick.bind(this))
         this.#summarySpan.addEventListener("dblclick", this.#onSummarySpanDoubleClick.bind(this))
         this.#summarySpan.addEventListener("contextmenu", this.#onContextMenu.bind(this))
+    }
+
+    connectedCallback() {
+        this.#abortController = new AbortController()
+        const {signal} = this.#abortController
+
+        this.ownerDocument.addEventListener(ResourceSelectedEvent.TYPE, this.#onResourceSelected.bind(this), {capture: true, signal})
+        this.ownerDocument.addEventListener("xxx", this.#onResourceSelected.bind(this), {capture: true, signal})
+    }
+
+    disconnectedCallback() {
+        this.#abortController?.abort()
     }
 
     get #summarySpan() {

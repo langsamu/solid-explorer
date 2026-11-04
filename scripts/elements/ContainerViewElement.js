@@ -5,14 +5,26 @@ export class ContainerViewElement extends HTMLDivElement {
     /** @type {ResourceUri} */
     #resourceUri
 
+    #abortController
+
     constructor() {
         super()
 
-        this.ownerDocument.addEventListener(ResourceSelectedEvent.TYPE, this.#onResourceSelected.bind(this), true)
         this.addEventListener("gotResourceUri", this.refresh.bind(this))
         this.addEventListener("contextmenu", this.#onContextMenu.bind(this))
         this.addEventListener("click", this.#onClick.bind(this))
         this.addEventListener("resourceClick", this.#onResourceClick.bind(this))
+    }
+
+    connectedCallback() {
+        this.#abortController = new AbortController()
+        const {signal} = this.#abortController
+
+        this.ownerDocument.addEventListener(ResourceSelectedEvent.TYPE, this.#onResourceSelected.bind(this), {capture: true, signal})
+    }
+
+    disconnectedCallback() {
+        this.#abortController?.abort()
     }
 
     /** @return {ResourceUri} */
