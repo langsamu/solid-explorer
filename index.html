@@ -8,6 +8,10 @@
             {
                 "imports": {
                     "@rdfjs/wrapper": "https://unpkg.com/@rdfjs/wrapper@0.34.0/dist/mod.js",
+                    "@solid/reactive-authentication": "https://unpkg.com/@solid/reactive-authentication@0.2.0/dist/mod.js",
+                    "@solid/reactive-authentication/registerElements": "https://unpkg.com/@solid/reactive-authentication@0.2.0/dist/registerElements.js",
+                    "oauth4webapi": "https://cdn.jsdelivr.net/npm/oauth4webapi@3.8.6/+esm",
+                    "dpop": "https://cdn.jsdelivr.net/npm/dpop@2.1.1/+esm",
                     "@codemirror/autocomplete": "https://esm.sh/@codemirror/autocomplete@6.20.4?external=@codemirror/state,@codemirror/view,@codemirror/language,@lezer/common",
                     "@codemirror/commands": "https://esm.sh/@codemirror/commands@6.11.1?external=@codemirror/state,@codemirror/view,@codemirror/language,@lezer/common",
                     "@codemirror/lang-javascript": "https://esm.sh/@codemirror/lang-javascript@6.2.5?external=@codemirror/state,@codemirror/view,@codemirror/language,@codemirror/autocomplete,@codemirror/lint,@lezer/common,@lezer/javascript",
@@ -162,6 +166,13 @@
             <dialog id="newResourceDialog" is="solid-new-resource-dialog" data-title="New resource"></dialog>
             <dialog id="notFoundDialog" is="solid-ok-dialog" data-title="Not found"></dialog>
             <dialog id="newContainerDialog" is="solid-input-dialog" data-title="New container" data-label="Container name" data-required="true"></dialog>
+            <authorization-code-flow></authorization-code-flow>
+            <idp-picker>
+                <option value="https://login.inrupt.com/"></option>
+                <option value="https://openid.dev-next.inrupt.com/"></option>
+                <option value="https://broker.inrupt.com/"></option>
+                <webid-picker slot="webid-picker"></webid-picker>
+            </idp-picker>
         </div>
         <menu style="grid-area: menu">
             <li>

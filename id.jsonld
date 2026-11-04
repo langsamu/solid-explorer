@@ -7,7 +7,7 @@
   "client_id": "https://langsamu.github.io/solid-explorer/id.jsonld",
   "logo_uri": "https://langsamu.github.io/solid-explorer/logo.svg",
   "token_endpoint_auth_method": "none",
-  "redirect_uris": ["https://langsamu.github.io/solid-explorer/authentication.html"],
+  "redirect_uris": ["https://langsamu.github.io/solid-explorer/callback.html", "https://langsamu.github.io/solid-explorer/authentication.html"],
 
   "scope": "openid webid",
   "grant_types": ["authorization_code", "offline_access"],
