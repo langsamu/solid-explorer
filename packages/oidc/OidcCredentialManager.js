@@ -60,10 +60,6 @@ export class OidcCredentialManager {
         this.#clientCredentials = null
     }
 
-    async getStorageFromWebId() {
-        return this.#ui.getStorageFromWebId()
-    }
-
     async #authorize(authenticationUrl) {
         // Open the authN window and wait for it to post us a message with the authorization code
         return await new Promise(async resolve => {

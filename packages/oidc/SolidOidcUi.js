@@ -1,6 +1,5 @@
 import "../dialog/InputDialog.js"
 import "../dialog/SelectDialog.js"
-import "../dialog/OkDialog.js"
 import "./AuthenticationDialog.js"
 
 import {WebIdClient} from "../../scripts/WebIdClient.js"
@@ -10,8 +9,6 @@ class SolidOidcUi extends HTMLElement {
     #webIdUriDialog
     #idpSelectDialog
     #authenticationDialog
-    #storageSelectDialog
-    #storageNotFoundInWebIdDialog
 
     connectedCallback() {
         this.#idpUriDialog = this.ownerDocument.createElement("dialog", {is: "solid-input-dialog"})
@@ -54,20 +51,8 @@ class SolidOidcUi extends HTMLElement {
         this.#idpSelectDialog.dataset.label = "IDPs"
         this.appendChild(this.#idpSelectDialog)
 
-        this.#storageSelectDialog = this.ownerDocument.createElement("dialog", {is: "solid-select-dialog"})
-        this.#storageSelectDialog.dataset.title = "Select storage URI"
-        this.#storageSelectDialog.dataset.label = "Storage URIs"
-        this.appendChild(this.#storageSelectDialog)
-
         this.#authenticationDialog = this.ownerDocument.createElement("dialog", {is: "solid-authentication-dialog"})
         this.appendChild(this.#authenticationDialog)
-
-        this.#storageNotFoundInWebIdDialog = this.ownerDocument.createElement("dialog", {is: "solid-ok-dialog"})
-        this.#storageNotFoundInWebIdDialog.dataset.title = "Storage missing from WebID"
-        const storageNotFoundInWebIdDiv = this.ownerDocument.createElement("div")
-        storageNotFoundInWebIdDiv.innerText = "A storage URI was not found in the WebID profile."
-        this.#storageNotFoundInWebIdDialog.contents.appendChild(storageNotFoundInWebIdDiv)
-        this.appendChild(this.#storageNotFoundInWebIdDialog)
     }
 
     async getIdpUri() {
@@ -81,30 +66,6 @@ class SolidOidcUi extends HTMLElement {
         }
 
         return localStorage.getItem("idpUri")
-    }
-
-    async getStorageFromWebId() {
-        const profile = await this.#getWebIdProfile()
-        if (!profile) {
-            return
-        }
-
-        if (profile.agent.storage.size === 0) {
-            this.#storageNotFoundInWebIdDialog.showModal()
-            return
-        }
-
-        if (profile.agent.storage.size === 1) {
-            const [storage] = profile.agent.storage
-            return storage
-        }
-
-        const storage = await this.#storageSelectDialog.getModalValue(profile.agent.storage)
-        if (!storage) {
-            return
-        }
-
-        return storage
     }
 
     needInteraction(authenticationUrl) {

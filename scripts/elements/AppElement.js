@@ -1,4 +1,5 @@
 import "../../packages/dialog/ContextMenuDialog.js"
+import "../../packages/webid/SolidWebIdUi.js"
 
 import {SolidClient} from "../SolidClient.js"
 import {HttpHeader, Ldp, Mime} from "../../packages/common/Vocabulary.js"
@@ -10,6 +11,7 @@ import {ContentType} from "../../packages/common/ContentType.js"
 
 class AppElement extends HTMLBodyElement {
     #oidc
+    #webId
     #containerContextDialog
     #resourceContextDialog
     #fileContextDialog
@@ -27,6 +29,8 @@ class AppElement extends HTMLBodyElement {
 
     connectedCallback() {
         this.#oidc.addUi(this)
+        this.#webId = this.appendChild(this.ownerDocument.createElement("solid-webid-ui"))
+        this.#webId.fetch = fetch.bind(globalThis)
         this.#buildUi()
         this.#wireHandlers()
     }
@@ -407,7 +411,7 @@ class AppElement extends HTMLBodyElement {
     // endregion
 
     async #getSolidResourceUriFromWebId() {
-        const storage = await this.#oidc.getStorageFromWebId()
+        const storage = await this.#webId.getStorageFromWebId()
 
         if (!storage) {
             return
