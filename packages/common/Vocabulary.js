@@ -149,16 +149,6 @@ export const Solid = {
     AclLinkHeaderParser: /[^<]+(?=>; rel="acl")/,
 }
 
-export const Uma = {
-    ClaimToken: "claim_token",
-    ClaimTokenFormat: "claim_token_format",
-    Discovery: "/.well-known/uma2-configuration",
-    IdToken: "http://openid.net/specs/openid-connect-core-1_0.html#IDToken",
-    Ticket: "ticket",
-    TicketParser: /as_uri="([^"]+)", ticket="([^"]+)"/,
-    TicketGrant: "urn:ietf:params:oauth:grant-type:uma-ticket"
-}
-
 export const WebCrypto = {
     AlgorithmName: "name",
     HashAlgorithm: "hash",

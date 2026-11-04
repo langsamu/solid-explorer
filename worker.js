@@ -1,5 +1,4 @@
 import {ReactiveAuthenticationClient} from "./scripts/ReactiveAuthenticationClient.js"
-import {UmaTokenProvider} from "./scripts/UmaTokenProvider.js"
 import {OidcTokenProvider} from "./packages/oidc/OidcTokenProvider.js"
 import {DPoPTokenProvider} from "./packages/oidc/DPoPTokenProvider.js"
 
@@ -35,15 +34,13 @@ function onFetch(e) {
 async function fetchInternal(e) {
     const client = await self.clients.get(e.clientId)
 
-    const umaTokenProvider = new UmaTokenProvider(session)
     const dpopTokenProvider = new DPoPTokenProvider
     const oidcTokenProvider = new OidcTokenProvider
 
-    umaTokenProvider.addEventListener("needCredentials", async e => e.detail.resolve(await postAndWaitForResponse(client, "needCredentials")))
     dpopTokenProvider.addEventListener("needCredentials", async e => e.detail.resolve(await postAndWaitForResponse(client, "needCredentials")))
     oidcTokenProvider.addEventListener("needCredentials", async e => e.detail.resolve(await postAndWaitForResponse(client, "needCredentials")))
 
-    const rac = new ReactiveAuthenticationClient(session, [umaTokenProvider, dpopTokenProvider, oidcTokenProvider], self.fetch)
+    const rac = new ReactiveAuthenticationClient(session, [dpopTokenProvider, oidcTokenProvider], self.fetch)
     return await rac.fetch(e.request)
 }
 

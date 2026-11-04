@@ -1,5 +1,3 @@
-import "./GrantRequestDialog.js"
-import "./GrantResponseDialog.js"
 import "../../packages/dialog/ContextMenuDialog.js"
 
 import {SolidClient} from "../SolidClient.js"
@@ -15,8 +13,6 @@ class AppElement extends HTMLBodyElement {
     #containerContextDialog
     #resourceContextDialog
     #fileContextDialog
-    #grantRequestDialog
-    #grantResponseDialog
     #solid
     #gettingStartedDialog
     #loadingDialog
@@ -47,7 +43,6 @@ class AppElement extends HTMLBodyElement {
         this.#containerContextDialog.addItem("newResource", "New resource…")
         this.#containerContextDialog.addItem("upload", "Upload")
         this.#containerContextDialog.addItem("uploadVerbose", "Upload…")
-        this.#containerContextDialog.addItem("grantAccess", "Grant access")
         if (window.ClipboardItem instanceof Function) {
             this.#containerContextDialog.addItem("copy", "Copy")
         }
@@ -60,7 +55,6 @@ class AppElement extends HTMLBodyElement {
         this.#resourceContextDialog.addItem("openNew", "Open in new window")
         this.#resourceContextDialog.addItem("download", "Download")
         this.#resourceContextDialog.addItem("delete", "Delete")
-        this.#resourceContextDialog.addItem("grantAccess", "Grant access")
         if (window.ClipboardItem instanceof Function) {
             this.#resourceContextDialog.addItem("copy", "Copy")
         }
@@ -72,14 +66,6 @@ class AppElement extends HTMLBodyElement {
         this.#fileContextDialog.addItem("openNew", "Open new window")
         this.#fileContextDialog.addItem("clearCredentials", "Clear credentials")
         this.appendChild(this.#fileContextDialog)
-
-        this.#grantRequestDialog = this.ownerDocument.createElement("dialog", {is: "solid-grant-request-dialog"})
-        this.#grantRequestDialog.dataset.title = "Grant access"
-        this.appendChild(this.#grantRequestDialog)
-
-        this.#grantResponseDialog = this.ownerDocument.createElement("dialog", {is: "solid-grant-response-dialog"})
-        this.#grantResponseDialog.dataset.title = "Access grant URI"
-        this.appendChild(this.#grantResponseDialog)
 
         this.#gettingStartedDialog = this.ownerDocument.createElement("dialog", {is: "solid-ok-dialog"})
         this.#gettingStartedDialog.dataset.title = "Getting started"
@@ -361,10 +347,6 @@ class AppElement extends HTMLBodyElement {
                 await this.#deleteRecursive(e.detail.resourceUri)
                 break
 
-            case "grantAccess":
-                await this.#grantAccess(e.detail.resourceUri)
-                break
-
             case "copy":
                 await this.#copy(e.detail.resourceUri)
                 break
@@ -527,20 +509,6 @@ class AppElement extends HTMLBodyElement {
         }
 
         return Mime.OctetStream
-    }
-
-    async #grantAccess(resourceUri) {
-        const grantRequestModalResponse = await this.#grantRequestDialog.getModalValue()
-        if (!grantRequestModalResponse) {
-            return
-        }
-
-        const accessGrantUri = await this.#solid.grantAccess(resourceUri, grantRequestModalResponse.webid, grantRequestModalResponse.modes)
-        if (!accessGrantUri) {
-            return
-        }
-
-        await this.#grantResponseDialog.showModal(accessGrantUri)
     }
 
     async #copy(resourceUri) {

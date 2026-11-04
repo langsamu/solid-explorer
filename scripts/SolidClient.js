@@ -1,5 +1,4 @@
 import {DataFactory, Parser, Store, Writer} from "n3"
-import {UmaClient} from "./UmaClient.js"
 import {HttpHeader, HttpMethod, Ldp, Mime, Solid} from "../packages/common/Vocabulary.js"
 import {bearer} from "../packages/common/Utils.js"
 import {ResourceUri} from "./ResourceUri.js"
@@ -172,50 +171,6 @@ export class SolidClient extends EventTarget {
         }
 
         return await fetch(resourceUri, init)
-    }
-
-    async grantAccess(resourceUri, isProvidedTo, mode) {
-        const [, umaServer] = await UmaClient.parseUmaChallenge(resourceUri, {method: HttpMethod.Head})
-        if (!umaServer) {
-            console.log("UMA not supported")
-            return
-        }
-
-        const uma = new UmaClient(umaServer, new Map)
-        const umaDisco = await uma.discover()
-        const vcServer = umaDisco.verifiable_credential_issuer
-
-        const vcDiscoSuffix = "/.well-known/vc-configuration"
-        const response = await fetch(new URL(vcDiscoSuffix, vcServer))
-        const vcDisco = await response.json()
-        const issueEndpoint = vcDisco.issuerService
-
-        const issuanceRequest = {
-            credential: {
-                "@context": [
-                    "https://vc.inrupt.com/credentials/v1",
-                    "https://www.w3.org/2018/credentials/v1",
-                ],
-                type: ["SolidAccessGrant"],
-                credentialSubject: {
-                    providedConsent: {
-                        forPersonalData: [resourceUri],
-                        mode,
-                        isProvidedTo,
-                        hasStatus: "ConsentStatusExplicitlyGiven",
-                    }
-                }
-            }
-        }
-        const accessGrantResponse = await fetch(issueEndpoint, {
-            method: HttpMethod.Post,
-            headers: {
-                [HttpHeader.ContentType]: Mime.Json
-            },
-            body: JSON.stringify(issuanceRequest)
-        })
-
-        return accessGrantResponse.headers.get(HttpHeader.Location)
     }
 }
 
