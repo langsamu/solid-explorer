@@ -8,7 +8,14 @@ export class SolidClient extends EventTarget {
 
     constructor(fetch) {
         super()
-        this.#fetch = fetch
+        this.#fetch = async (resourceUri, init) => {
+            this.dispatchEvent(new Event("fetching"))
+            try {
+                return await fetch(resourceUri, init)
+            } finally {
+                this.dispatchEvent(new Event("fetched"))
+            }
+        }
     }
 
     async getAcrUri(resourceUri) {
