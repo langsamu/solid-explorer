@@ -11,7 +11,7 @@ export class WebIdClient {
      * @param webId
      * @return {Promise<Profile>}
      */
-    static async dereference(webId) {
+    static async dereference(webId, fetch) {
         if (!this.#profileCache.has(webId)) {
             const response = await fetch(webId, {
                 cache: "no-store",

@@ -22,7 +22,7 @@ class AppElement extends HTMLBodyElement {
         super()
 
         this.#oidc = new OidcCredentialManager
-        this.#solid = new SolidClient()
+        this.#solid = new SolidClient(fetch.bind(globalThis))
     }
 
     connectedCallback() {

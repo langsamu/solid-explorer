@@ -124,7 +124,7 @@ class SolidOidcUi extends HTMLElement {
             return
         }
 
-        return WebIdClient.dereference(webIdUri)
+        return WebIdClient.dereference(webIdUri, fetch)
     }
 
     async #getIdpFromWebId() {
