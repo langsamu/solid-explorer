@@ -1,8 +1,4 @@
 import {HttpHeader, Mime} from "../../packages/common/Vocabulary.js"
-import "codemirror"
-import "codemirror/mode/turtle"
-import "codemirror/mode/javascript"
-import "codemirror/mode/xml"
 import {ContentType} from "../../packages/common/ContentType.js"
 
 export class ResourceViewerElement extends HTMLDivElement {

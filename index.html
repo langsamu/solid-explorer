@@ -8,10 +8,22 @@
             {
                 "imports": {
                     "@rdfjs/wrapper": "https://unpkg.com/@rdfjs/wrapper@0.34.0/dist/mod.js",
-                    "codemirror": "https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js",
-                    "codemirror/mode/javascript": "https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js",
-                    "codemirror/mode/turtle": "https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/turtle/turtle.min.js",
-                    "codemirror/mode/xml": "https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/xml/xml.min.js",
+                    "@codemirror/autocomplete": "https://esm.sh/@codemirror/autocomplete@6.20.4?external=@codemirror/state,@codemirror/view,@codemirror/language,@lezer/common",
+                    "@codemirror/commands": "https://esm.sh/@codemirror/commands@6.11.1?external=@codemirror/state,@codemirror/view,@codemirror/language,@lezer/common",
+                    "@codemirror/lang-javascript": "https://esm.sh/@codemirror/lang-javascript@6.2.5?external=@codemirror/state,@codemirror/view,@codemirror/language,@codemirror/autocomplete,@codemirror/lint,@lezer/common,@lezer/javascript",
+                    "@codemirror/lang-json": "https://esm.sh/@codemirror/lang-json@6.0.2?external=@codemirror/language,@lezer/json",
+                    "@codemirror/lang-xml": "https://esm.sh/@codemirror/lang-xml@6.1.0?external=@codemirror/state,@codemirror/view,@codemirror/language,@codemirror/autocomplete,@lezer/common,@lezer/xml",
+                    "@codemirror/language": "https://esm.sh/@codemirror/language@6.13.1?external=@codemirror/state,@codemirror/view,@lezer/common,@lezer/highlight,@lezer/lr",
+                    "@codemirror/legacy-modes/mode/turtle": "https://esm.sh/@codemirror/legacy-modes@6.5.5/mode/turtle",
+                    "@codemirror/lint": "https://esm.sh/@codemirror/lint@6.9.7?external=@codemirror/state,@codemirror/view",
+                    "@codemirror/state": "https://esm.sh/@codemirror/state@6.7.6",
+                    "@codemirror/view": "https://esm.sh/@codemirror/view@6.43.15?external=@codemirror/state",
+                    "@lezer/common": "https://esm.sh/@lezer/common@1.5.5",
+                    "@lezer/highlight": "https://esm.sh/@lezer/highlight@1.2.5?external=@lezer/common",
+                    "@lezer/javascript": "https://esm.sh/@lezer/javascript@1.5.6?external=@lezer/common,@lezer/highlight,@lezer/lr",
+                    "@lezer/json": "https://esm.sh/@lezer/json@1.0.3?external=@lezer/common,@lezer/highlight,@lezer/lr",
+                    "@lezer/lr": "https://esm.sh/@lezer/lr@1.4.12?external=@lezer/common",
+                    "@lezer/xml": "https://esm.sh/@lezer/xml@1.0.6?external=@lezer/common,@lezer/highlight,@lezer/lr",
                     "n3": "https://cdn.jsdelivr.net/npm/n3@2.13.12/+esm",
                     "split-grid": "https://unpkg.com/split-grid@1.0.11/dist/split-grid.min.js"
                 }
@@ -92,12 +104,9 @@
                 width: 100%;
             }
 
-            #preview .CodeMirror {
+            #preview .cm-editor {
                 flex-grow: 1;
-            }
-
-            #preview .CodeMirror-wrap pre {
-                word-break: break-word;
+                min-height: 0;
             }
 
             ul[is=solid-crumb-trail] li {
@@ -144,7 +153,6 @@
                 background-color: lightgoldenrodyellow
             }
         </style>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css">
         <link rel="icon" href="logo.svg">
     </head>
     <body is="solid-app">
